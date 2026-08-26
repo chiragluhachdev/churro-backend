@@ -1,0 +1,771 @@
+[
+  {
+    "title": "Chocolate Cake Mastery",
+    "slug": "chocolate-cake-mastery",
+    "shortDescription": "Create rich, moist & decadent chocolate cakes.",
+    "description": "From a reliable everyday sponge to a mirror-glazed centrepiece, this course walks through the technique behind chocolate cakes that stay moist for days. You'll learn ratios, mixing method, ganache work and finishing.",
+    "thumbnail": "https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=800&h=600&fit=crop&q=80&auto=format",
+    "heroImage": "https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=1600&h=900&fit=crop&q=80&auto=format",
+    "price": 1999,
+    "instructor": {
+      "id": "chef-simone",
+      "name": "Chef Simone Kathuria",
+      "title": "Founder & Head Pastry Chef",
+      "avatar": "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=160&h=160&fit=crop&crop=faces&q=80&auto=format"
+    },
+    "level": "Beginner",
+    "duration": "4h 10m",
+    "lessons": 12,
+    "rating": 4.8,
+    "reviewCount": 320,
+    "category": "Cakes",
+    "featured": true,
+    "badge": "Bestseller",
+    "curriculum": [
+      {
+        "title": "Foundations",
+        "lessons": [
+          {
+            "title": "Ingredients & equipment",
+            "duration": 14,
+            "preview": true
+          },
+          {
+            "title": "Understanding cocoa and chocolate",
+            "duration": 18
+          },
+          {
+            "title": "The creaming method",
+            "duration": 22
+          }
+        ]
+      },
+      {
+        "title": "Bake & Finish",
+        "lessons": [
+          {
+            "title": "Baking the perfect sponge",
+            "duration": 26
+          },
+          {
+            "title": "Silky chocolate ganache",
+            "duration": 21
+          },
+          {
+            "title": "Layering, crumb coat & finish",
+            "duration": 30
+          }
+        ]
+      }
+    ],
+    "whatYouWillLearn": [
+      "Build a moist chocolate sponge you can repeat every time",
+      "Temper and work with chocolate confidently",
+      "Whip a stable ganache and buttercream",
+      "Layer, crumb coat and finish a cake cleanly"
+    ],
+    "includedItems": [
+      "12 on-demand video lessons",
+      "Printable recipe cards",
+      "Lifetime access",
+      "Certificate of completion"
+    ],
+    "requirements": [
+      "No prior baking experience needed",
+      "Basic kitchen equipment (oven, mixing bowls, whisk)",
+      "Ingredients listed in the first lesson"
+    ],
+    "faqs": [
+      {
+        "question": "Do I need professional baking equipment?",
+        "answer": "Not at all. A standard home oven, mixing bowls, a whisk and a spatula are enough. We cover equipment recommendations in the very first lesson."
+      },
+      {
+        "question": "How long do I have access to the course?",
+        "answer": "Lifetime access. Once you enrol, the course is yours to revisit whenever you like — no expiry."
+      },
+      {
+        "question": "Can I download the recipe cards?",
+        "answer": "Yes. Every lesson includes a printable PDF recipe card you can download and keep in your kitchen."
+      },
+      {
+        "question": "Is there a certificate?",
+        "answer": "Absolutely. Complete all lessons and you'll receive a Churro Academy certificate you can share or print."
+      }
+    ]
+  },
+  {
+    "title": "Churros From Scratch",
+    "slug": "churros-from-scratch",
+    "shortDescription": "Crispy outside, soft inside. Perfect every time.",
+    "description": "The course the academy is named after. Master choux-style churro dough, frying temperature control, piping technique and the dipping sauces that go with them.",
+    "thumbnail": "https://images.unsplash.com/photo-1624371414361-e670edf4898d?w=800&h=600&fit=crop&q=80&auto=format",
+    "heroImage": "https://images.unsplash.com/photo-1624371414361-e670edf4898d?w=1600&h=900&fit=crop&q=80&auto=format",
+    "price": 1499,
+    "instructor": {
+      "id": "chef-simone",
+      "name": "Chef Simone Kathuria",
+      "title": "Founder & Head Pastry Chef",
+      "avatar": "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=160&h=160&fit=crop&crop=faces&q=80&auto=format"
+    },
+    "level": "Beginner",
+    "duration": "2h 45m",
+    "lessons": 8,
+    "rating": 4.7,
+    "reviewCount": 210,
+    "category": "Fried & Street",
+    "featured": true,
+    "curriculum": [
+      {
+        "title": "The Dough",
+        "lessons": [
+          {
+            "title": "Why churro dough behaves differently",
+            "duration": 12,
+            "preview": true
+          },
+          {
+            "title": "Cooking the paste",
+            "duration": 19
+          },
+          {
+            "title": "Piping and shaping",
+            "duration": 17
+          }
+        ]
+      },
+      {
+        "title": "Frying & Serving",
+        "lessons": [
+          {
+            "title": "Oil temperature control",
+            "duration": 20
+          },
+          {
+            "title": "Cinnamon sugar & chocolate dip",
+            "duration": 16
+          }
+        ]
+      }
+    ],
+    "whatYouWillLearn": [
+      "Cook a churro paste that pipes cleanly",
+      "Control oil temperature for an even, crisp fry",
+      "Shape classic, filled and knotted churros",
+      "Make chocolate, dulce de leche and cinnamon finishes"
+    ],
+    "includedItems": [
+      "8 on-demand video lessons",
+      "Printable recipe cards",
+      "Lifetime access",
+      "Certificate of completion"
+    ],
+    "requirements": [
+      "No prior experience required",
+      "A deep pan or fryer suitable for oil",
+      "A piping bag with a star tip"
+    ],
+    "faqs": [
+      {
+        "question": "Is deep-frying safe at home?",
+        "answer": "Yes — we dedicate an entire lesson to oil temperature control and safe frying practices. You'll feel confident handling hot oil after watching it."
+      },
+      {
+        "question": "Can I use an air fryer instead?",
+        "answer": "The course is designed around traditional frying for authentic results, but we share tips for air fryer adaptation in the bonus notes."
+      },
+      {
+        "question": "What kind of piping tip do I need?",
+        "answer": "A large open-star tip (like Wilton 1M or 8B) works best. We cover alternatives in the first lesson."
+      },
+      {
+        "question": "Are the dipping sauce recipes included?",
+        "answer": "Yes. Chocolate, dulce de leche and cinnamon sugar finishes are all covered with full recipe cards."
+      }
+    ]
+  },
+  {
+    "title": "Macaron Perfection",
+    "slug": "macaron-perfection",
+    "shortDescription": "Master the art of delicate French macarons.",
+    "description": "Macarons are unforgiving — and completely learnable. This course covers the Italian meringue method, macaronage, resting, feet development and troubleshooting every common failure.",
+    "thumbnail": "https://images.unsplash.com/photo-1558326567-98ae2405596b?w=800&h=600&fit=crop&q=80&auto=format",
+    "heroImage": "https://images.unsplash.com/photo-1569864358642-9d1684040f43?w=1600&h=900&fit=crop&q=80&auto=format",
+    "price": 1799,
+    "instructor": {
+      "id": "chef-simone",
+      "name": "Chef Simone Kathuria",
+      "title": "Founder & Head Pastry Chef",
+      "avatar": "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=160&h=160&fit=crop&crop=faces&q=80&auto=format"
+    },
+    "level": "Intermediate",
+    "duration": "3h 30m",
+    "lessons": 10,
+    "rating": 4.9,
+    "reviewCount": 185,
+    "category": "French Pastry",
+    "featured": true,
+    "curriculum": [
+      {
+        "title": "Meringue & Batter",
+        "lessons": [
+          {
+            "title": "Italian vs French meringue",
+            "duration": 18,
+            "preview": true
+          },
+          {
+            "title": "Macaronage — reading the batter",
+            "duration": 24
+          },
+          {
+            "title": "Piping and resting",
+            "duration": 15
+          }
+        ]
+      },
+      {
+        "title": "Bake & Fill",
+        "lessons": [
+          {
+            "title": "Oven mapping and feet",
+            "duration": 22
+          },
+          {
+            "title": "Ganache and curd fillings",
+            "duration": 25
+          },
+          {
+            "title": "Troubleshooting hollows & cracks",
+            "duration": 20
+          }
+        ]
+      }
+    ],
+    "whatYouWillLearn": [
+      "Read macaron batter by consistency, not by timer",
+      "Get consistent feet and smooth shells",
+      "Fill with stable ganache, curd and buttercream",
+      "Diagnose hollows, cracks and spreading"
+    ],
+    "includedItems": [
+      "10 on-demand video lessons",
+      "Troubleshooting guide (PDF)",
+      "Lifetime access",
+      "Certificate of completion"
+    ],
+    "requirements": [
+      "Some basic baking experience recommended",
+      "A kitchen scale (gram precision)",
+      "A stand mixer or hand mixer",
+      "Silicone baking mats or parchment paper"
+    ],
+    "faqs": [
+      {
+        "question": "Why do my macarons always crack?",
+        "answer": "Cracking is usually caused by under-resting before baking or too-high oven temperature. We have an entire troubleshooting lesson dedicated to this."
+      },
+      {
+        "question": "Do I need a stand mixer?",
+        "answer": "A stand mixer makes Italian meringue easier, but a hand mixer works too. We show techniques for both."
+      },
+      {
+        "question": "How long do macarons keep?",
+        "answer": "Filled macarons keep 3–5 days in the fridge and freeze beautifully for up to 3 months. Storage tips are included."
+      },
+      {
+        "question": "Is the French or Italian method better?",
+        "answer": "We teach the Italian meringue method as the primary technique — it's more stable and forgiving. We compare both so you can choose."
+      }
+    ]
+  },
+  {
+    "title": "Cheesecake Secrets",
+    "slug": "cheesecake-secrets",
+    "shortDescription": "Smooth, creamy & picture perfect cheesecakes.",
+    "description": "Baked, no-bake and basque — three cheesecake families, one set of principles. Learn crust technique, water baths, doneness cues and crack-free cooling.",
+    "thumbnail": "https://images.unsplash.com/photo-1533134242443-d4fd215305ad?w=800&h=600&fit=crop&q=80&auto=format",
+    "heroImage": "https://images.unsplash.com/photo-1524351199678-941a58a3df50?w=1600&h=900&fit=crop&q=80&auto=format",
+    "price": 1699,
+    "instructor": {
+      "id": "chef-simone",
+      "name": "Chef Simone Kathuria",
+      "title": "Founder & Head Pastry Chef",
+      "avatar": "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=160&h=160&fit=crop&crop=faces&q=80&auto=format"
+    },
+    "level": "Intermediate",
+    "duration": "3h 55m",
+    "lessons": 11,
+    "rating": 4.8,
+    "reviewCount": 142,
+    "category": "Cheesecakes",
+    "featured": true,
+    "curriculum": [
+      {
+        "title": "Base & Batter",
+        "lessons": [
+          {
+            "title": "Biscuit and pastry crusts",
+            "duration": 16,
+            "preview": true
+          },
+          {
+            "title": "Cream cheese, ratios and texture",
+            "duration": 23
+          }
+        ]
+      },
+      {
+        "title": "Three Cheesecakes",
+        "lessons": [
+          {
+            "title": "Classic baked with water bath",
+            "duration": 28
+          },
+          {
+            "title": "No-bake set with gelatine",
+            "duration": 21
+          },
+          {
+            "title": "Basque burnt cheesecake",
+            "duration": 24
+          }
+        ]
+      }
+    ],
+    "whatYouWillLearn": [
+      "Press a crust that holds its shape when sliced",
+      "Bake crack-free with and without a water bath",
+      "Judge doneness by wobble, not by clock",
+      "Finish with compotes, caramel and fresh fruit"
+    ],
+    "includedItems": [
+      "11 on-demand video lessons",
+      "Printable recipe cards",
+      "Lifetime access",
+      "Certificate of completion"
+    ],
+    "requirements": [
+      "Basic baking knowledge helpful but not required",
+      "A springform pan (9-inch recommended)",
+      "Full-fat cream cheese (room temperature)"
+    ],
+    "faqs": [
+      {
+        "question": "Why does my cheesecake crack on top?",
+        "answer": "Cracks usually come from over-baking or rapid cooling. We cover the slow-cool technique that prevents this every time."
+      },
+      {
+        "question": "Can I use a regular cake pan instead of springform?",
+        "answer": "A springform pan is strongly recommended for clean release. We show a parchment-sling technique as an alternative."
+      },
+      {
+        "question": "Do I need a water bath for every recipe?",
+        "answer": "Not all. The Basque burnt cheesecake skips the water bath entirely. We teach when to use one and when to skip it."
+      },
+      {
+        "question": "How far in advance can I make a cheesecake?",
+        "answer": "Cheesecakes are ideal make-ahead desserts. They taste best after 24 hours in the fridge and can be frozen for up to a month."
+      }
+    ]
+  },
+  {
+    "title": "Artisan Sourdough",
+    "slug": "artisan-sourdough",
+    "shortDescription": "Build a starter and bake a proper open crumb.",
+    "description": "Sourdough demystified. Raise a starter from flour and water, learn to read dough by feel rather than by clock, and bake loaves with a blistered crust and an open, custardy crumb.",
+    "thumbnail": "https://images.unsplash.com/photo-1549413468-cd78edb7e75c?w=800&h=600&fit=crop&q=80&auto=format",
+    "heroImage": "https://images.unsplash.com/photo-1549413468-cd78edb7e75c?w=1600&h=900&fit=crop&q=80&auto=format",
+    "price": 1899,
+    "instructor": {
+      "id": "chef-simone",
+      "name": "Chef Simone Kathuria",
+      "title": "Founder & Head Pastry Chef",
+      "avatar": "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=160&h=160&fit=crop&crop=faces&q=80&auto=format"
+    },
+    "level": "Intermediate",
+    "duration": "5h 15m",
+    "lessons": 14,
+    "rating": 4.9,
+    "reviewCount": 268,
+    "category": "Breads",
+    "featured": false,
+    "curriculum": [
+      {
+        "title": "The Starter",
+        "lessons": [
+          {
+            "title": "Flour, water and wild yeast",
+            "duration": 17,
+            "preview": true
+          },
+          {
+            "title": "Feeding schedule and readiness",
+            "duration": 21
+          }
+        ]
+      },
+      {
+        "title": "Mix, Shape, Bake",
+        "lessons": [
+          {
+            "title": "Autolyse and bulk fermentation",
+            "duration": 28
+          },
+          {
+            "title": "Shaping and cold retard",
+            "duration": 24
+          },
+          {
+            "title": "Scoring and the Dutch oven bake",
+            "duration": 26
+          }
+        ]
+      }
+    ],
+    "whatYouWillLearn": [
+      "Raise and maintain a reliable starter",
+      "Judge bulk fermentation by feel, not by timer",
+      "Shape boules and batards with real tension",
+      "Score and bake for oven spring and an open crumb"
+    ],
+    "includedItems": [
+      "14 on-demand video lessons",
+      "Starter troubleshooting guide",
+      "Lifetime access",
+      "Certificate of completion"
+    ]
+  },
+  {
+    "title": "Croissants & Laminated Doughs",
+    "slug": "croissants-and-laminated-doughs",
+    "shortDescription": "Butter, layers and a shatteringly crisp bake.",
+    "description": "The most technical course in the catalogue, taught slowly. Learn the butter block, the turns, the resting discipline and the proof window that separates a real croissant from a bread roll.",
+    "thumbnail": "https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=800&h=600&fit=crop&q=80&auto=format",
+    "heroImage": "https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=1600&h=900&fit=crop&q=80&auto=format",
+    "price": 2299,
+    "instructor": {
+      "id": "chef-simone",
+      "name": "Chef Simone Kathuria",
+      "title": "Founder & Head Pastry Chef",
+      "avatar": "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=160&h=160&fit=crop&crop=faces&q=80&auto=format"
+    },
+    "level": "Advanced",
+    "duration": "6h 05m",
+    "lessons": 16,
+    "rating": 4.8,
+    "reviewCount": 154,
+    "category": "French Pastry",
+    "featured": false,
+    "badge": "Advanced",
+    "curriculum": [
+      {
+        "title": "Détrempe & Butter Block",
+        "lessons": [
+          {
+            "title": "Choosing your butter",
+            "duration": 14,
+            "preview": true
+          },
+          {
+            "title": "Mixing the détrempe",
+            "duration": 22
+          },
+          {
+            "title": "Locking in the butter",
+            "duration": 19
+          }
+        ]
+      },
+      {
+        "title": "Turns & Shaping",
+        "lessons": [
+          {
+            "title": "Single and double turns",
+            "duration": 27
+          },
+          {
+            "title": "Rolling, cutting and shaping",
+            "duration": 30
+          },
+          {
+            "title": "Proofing and the bake",
+            "duration": 25
+          }
+        ]
+      }
+    ],
+    "whatYouWillLearn": [
+      "Build a butter block that rolls without cracking",
+      "Execute turns without tearing the layers",
+      "Recognise a correctly proofed croissant",
+      "Bake for honeycomb crumb and crisp shatter"
+    ],
+    "includedItems": [
+      "16 on-demand video lessons",
+      "Lamination timing chart",
+      "Lifetime access",
+      "Certificate of completion"
+    ]
+  },
+  {
+    "title": "Cookie Craft",
+    "slug": "cookie-craft",
+    "shortDescription": "Chewy, crisp or cakey — cookies on purpose.",
+    "description": "One dough, many outcomes. Learn how sugar ratio, fat temperature, flour choice and rest time each pull a cookie toward chewy, crisp or cakey, so you can bake the texture you actually wanted.",
+    "thumbnail": "https://images.unsplash.com/photo-1499636136210-6f4ee915583e?w=800&h=600&fit=crop&q=80&auto=format",
+    "heroImage": "https://images.unsplash.com/photo-1499636136210-6f4ee915583e?w=1600&h=900&fit=crop&q=80&auto=format",
+    "price": 1199,
+    "instructor": {
+      "id": "chef-simone",
+      "name": "Chef Simone Kathuria",
+      "title": "Founder & Head Pastry Chef",
+      "avatar": "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=160&h=160&fit=crop&crop=faces&q=80&auto=format"
+    },
+    "level": "Beginner",
+    "duration": "2h 30m",
+    "lessons": 9,
+    "rating": 4.7,
+    "reviewCount": 412,
+    "category": "Basics",
+    "featured": false,
+    "curriculum": [
+      {
+        "title": "The Variables",
+        "lessons": [
+          {
+            "title": "Sugar, fat and flour ratios",
+            "duration": 18,
+            "preview": true
+          },
+          {
+            "title": "Why resting dough matters",
+            "duration": 15
+          }
+        ]
+      },
+      {
+        "title": "The Bakes",
+        "lessons": [
+          {
+            "title": "Chewy chocolate chip",
+            "duration": 20
+          },
+          {
+            "title": "Crisp shortbread",
+            "duration": 18
+          },
+          {
+            "title": "Soft-baked and stuffed",
+            "duration": 22
+          }
+        ]
+      }
+    ],
+    "whatYouWillLearn": [
+      "Control spread, chew and crispness deliberately",
+      "Brown butter and use it well",
+      "Rest and freeze dough for better flavour",
+      "Bake evenly across a full tray"
+    ],
+    "includedItems": [
+      "9 on-demand video lessons",
+      "Printable recipe cards",
+      "Lifetime access",
+      "Certificate of completion"
+    ]
+  },
+  {
+    "title": "Doughnuts & Fried Sweets",
+    "slug": "doughnuts-and-fried-sweets",
+    "shortDescription": "Light, airy doughnuts and the glazes to match.",
+    "description": "Enriched dough, proofing and frying technique, plus the glazes, fillings and sugars that finish them. A natural companion to the churros course.",
+    "thumbnail": "https://images.unsplash.com/photo-1527515545081-5db817172677?w=800&h=600&fit=crop&q=80&auto=format",
+    "heroImage": "https://images.unsplash.com/photo-1527515545081-5db817172677?w=1600&h=900&fit=crop&q=80&auto=format",
+    "price": 1399,
+    "instructor": {
+      "id": "chef-simone",
+      "name": "Chef Simone Kathuria",
+      "title": "Founder & Head Pastry Chef",
+      "avatar": "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=160&h=160&fit=crop&crop=faces&q=80&auto=format"
+    },
+    "level": "Beginner",
+    "duration": "3h 10m",
+    "lessons": 10,
+    "rating": 4.6,
+    "reviewCount": 176,
+    "category": "Fried & Street",
+    "featured": false,
+    "curriculum": [
+      {
+        "title": "Enriched Dough",
+        "lessons": [
+          {
+            "title": "Building an enriched dough",
+            "duration": 22,
+            "preview": true
+          },
+          {
+            "title": "Proofing for a light crumb",
+            "duration": 18
+          }
+        ]
+      },
+      {
+        "title": "Fry & Finish",
+        "lessons": [
+          {
+            "title": "Oil temperature and timing",
+            "duration": 20
+          },
+          {
+            "title": "Glazes, fillings and sugars",
+            "duration": 24
+          }
+        ]
+      }
+    ],
+    "whatYouWillLearn": [
+      "Mix and proof a properly enriched dough",
+      "Fry evenly without greasy results",
+      "Fill with crème pâtissière and jams",
+      "Finish with glazes that set cleanly"
+    ],
+    "includedItems": [
+      "10 on-demand video lessons",
+      "Printable recipe cards",
+      "Lifetime access",
+      "Certificate of completion"
+    ]
+  },
+  {
+    "title": "Cupcakes & Buttercream",
+    "slug": "cupcakes-and-buttercream",
+    "shortDescription": "Even domes and buttercream that holds its edge.",
+    "description": "Small cakes, exacting technique. Get level domes every time, then work through Swiss, Italian and American buttercreams and the piping that makes them look finished.",
+    "thumbnail": "https://images.unsplash.com/photo-1563729784474-d77dbb933a9e?w=800&h=600&fit=crop&q=80&auto=format",
+    "heroImage": "https://images.unsplash.com/photo-1563729784474-d77dbb933a9e?w=1600&h=900&fit=crop&q=80&auto=format",
+    "price": 1299,
+    "instructor": {
+      "id": "chef-simone",
+      "name": "Chef Simone Kathuria",
+      "title": "Founder & Head Pastry Chef",
+      "avatar": "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=160&h=160&fit=crop&crop=faces&q=80&auto=format"
+    },
+    "level": "Beginner",
+    "duration": "3h 20m",
+    "lessons": 11,
+    "rating": 4.8,
+    "reviewCount": 233,
+    "category": "Cakes",
+    "featured": false,
+    "curriculum": [
+      {
+        "title": "The Cake",
+        "lessons": [
+          {
+            "title": "Batter and even domes",
+            "duration": 19,
+            "preview": true
+          },
+          {
+            "title": "Filling and baking evenly",
+            "duration": 17
+          }
+        ]
+      },
+      {
+        "title": "Buttercream & Piping",
+        "lessons": [
+          {
+            "title": "Swiss, Italian and American",
+            "duration": 26
+          },
+          {
+            "title": "Piping techniques and nozzles",
+            "duration": 23
+          }
+        ]
+      }
+    ],
+    "whatYouWillLearn": [
+      "Bake flat, even cupcake domes",
+      "Make three buttercreams and know when to use each",
+      "Pipe rosettes, swirls and ruffles cleanly",
+      "Colour and flavour without splitting the cream"
+    ],
+    "includedItems": [
+      "11 on-demand video lessons",
+      "Piping nozzle reference",
+      "Lifetime access",
+      "Certificate of completion"
+    ]
+  },
+  {
+    "title": "Layer Cake Architecture",
+    "slug": "layer-cake-architecture",
+    "shortDescription": "Tall, level cakes that travel without leaning.",
+    "description": "Structure first. Learn how to bake level layers, build with the right ratio of cake to filling, dam and stack properly, and finish with edges sharp enough to photograph.",
+    "thumbnail": "https://images.unsplash.com/photo-1606890737304-57a1ca8a5b62?w=800&h=600&fit=crop&q=80&auto=format",
+    "heroImage": "https://images.unsplash.com/photo-1606890737304-57a1ca8a5b62?w=1600&h=900&fit=crop&q=80&auto=format",
+    "price": 2099,
+    "instructor": {
+      "id": "chef-simone",
+      "name": "Chef Simone Kathuria",
+      "title": "Founder & Head Pastry Chef",
+      "avatar": "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=160&h=160&fit=crop&crop=faces&q=80&auto=format"
+    },
+    "level": "Advanced",
+    "duration": "4h 45m",
+    "lessons": 13,
+    "rating": 4.9,
+    "reviewCount": 121,
+    "category": "Cakes",
+    "featured": false,
+    "curriculum": [
+      {
+        "title": "Structure",
+        "lessons": [
+          {
+            "title": "Baking level layers",
+            "duration": 21,
+            "preview": true
+          },
+          {
+            "title": "Damming and filling ratios",
+            "duration": 24
+          }
+        ]
+      },
+      {
+        "title": "Finish",
+        "lessons": [
+          {
+            "title": "Crumb coat and sharp edges",
+            "duration": 28
+          },
+          {
+            "title": "Drips, textures and decoration",
+            "duration": 26
+          },
+          {
+            "title": "Transport and storage",
+            "duration": 16
+          }
+        ]
+      }
+    ],
+    "whatYouWillLearn": [
+      "Bake flat layers without doming or sinking",
+      "Dam and fill so nothing bulges",
+      "Achieve genuinely sharp top edges",
+      "Move a finished cake without damage"
+    ],
+    "includedItems": [
+      "13 on-demand video lessons",
+      "Cake portioning chart",
+      "Lifetime access",
+      "Certificate of completion"
+    ]
+  }
+]
