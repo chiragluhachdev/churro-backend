@@ -60,6 +60,27 @@ async function main() {
     console.log(`[seed] created admin ${ADMIN.email} / ${ADMIN.password}`);
   }
 
+  const STUDENT = {
+    name: "Alex Student",
+    username: "alex",
+    email: "alex@example.com",
+    password: "password123",
+  };
+
+  const existingStudent = await User.findOne({ email: STUDENT.email });
+  if (!existingStudent) {
+    await User.create({
+      name: STUDENT.name,
+      username: STUDENT.username,
+      email: STUDENT.email,
+      passwordHash: await bcrypt.hash(STUDENT.password, 12),
+      role: "student",
+    });
+    console.log(`[seed] created student ${STUDENT.email} / ${STUDENT.password}`);
+  } else {
+    console.log(`[seed] student already present (${STUDENT.email})`);
+  }
+
   await mongoose.disconnect();
   console.log("[seed] done");
 }
