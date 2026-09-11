@@ -7,6 +7,7 @@ import { env } from "./lib/env.js";
 import { HttpError } from "./lib/http.js";
 import { adminRouter } from "./routes/admin.js";
 import { authRouter } from "./routes/auth.js";
+import { chatRouter } from "./routes/chat.js";
 import { coursesRouter } from "./routes/courses.js";
 import { enrollmentsRouter } from "./routes/enrollments.js";
 import { uploadRouter } from "./routes/upload.js";
@@ -21,6 +22,7 @@ app.get("/health", (_req, res) => {
 });
 
 app.use("/api/auth", authRouter);
+app.use("/api/chat", chatRouter);
 app.use("/api/courses", coursesRouter);
 app.use("/api/enrollments", enrollmentsRouter);
 app.use("/api/admin", adminRouter);
