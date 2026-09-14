@@ -9,8 +9,15 @@ const enrollmentSchema = new Schema(
   {
     user: { type: Schema.Types.ObjectId, ref: "User", required: true, index: true },
     course: { type: Schema.Types.ObjectId, ref: "Course", required: true, index: true },
-    /** Lessons ticked off; progress is derived from the course's lesson count. */
+    /**
+     * Ids of lessons the student has finished. Only real lesson ids from the
+     * course are ever added, so progress can't be inflated by sending a number.
+     */
+    completedLessonIds: { type: [String], default: [] },
+    /** Cached count of completedLessonIds, for sorting and admin stats. */
     completedLessons: { type: Number, default: 0, min: 0 },
+    /** Lesson to reopen the player on. */
+    lastLessonId: { type: String, default: "" },
     lastOpenedAt: { type: Date, default: Date.now },
     completedAt: { type: Date },
 
@@ -22,11 +29,10 @@ const enrollmentSchema = new Schema(
       enum: ["paid", "pending", "failed"],
       default: "paid",
     },
-    /**
-     * "manual" until Razorpay/Cashfree is wired in; the gateway's order id
-     * goes here once it is.
-     */
-    paymentProvider: { type: String, default: "manual" },
+    /** "dummy" in test mode, later "razorpay". */
+    paymentProvider: { type: String, default: "dummy" },
+    /** The Order this enrollment was paid through. */
+    order: { type: Schema.Types.ObjectId, ref: "Order" },
     paymentRef: { type: String, default: "" },
   },
   { timestamps: true },

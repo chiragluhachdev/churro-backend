@@ -49,3 +49,12 @@ export function requireAdmin(req: Request, _res: Response, next: NextFunction) {
   if (req.user.role !== "admin") return next(new HttpError(403, "Admins only."));
   next();
 }
+
+/** Buying and learning are for student accounts; admins manage, they don't enroll. */
+export function requireStudent(req: Request, _res: Response, next: NextFunction) {
+  if (!req.user) return next(new HttpError(401, "Sign in to continue."));
+  if (req.user.role !== "student") {
+    return next(new HttpError(403, "Admin accounts can't enroll in courses. Use a student account to buy."));
+  }
+  next();
+}

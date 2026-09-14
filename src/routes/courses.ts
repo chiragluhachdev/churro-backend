@@ -1,17 +1,23 @@
 import { Router } from "express";
 import { z } from "zod";
 
+import { lessonIdsOf, normalizeCurriculum, stripPaidVideos } from "../lib/curriculum.js";
 import { asyncHandler, HttpError, onlySentFields } from "../lib/http.js";
 import { authenticate, requireAdmin } from "../middleware/auth.js";
 import { Course } from "../models/Course.js";
+import { Enrollment } from "../models/Enrollment.js";
 
 export const coursesRouter = Router();
 
-function publicCourse(doc: Record<string, unknown>) {
+function withId(doc: Record<string, unknown>) {
   const { _id, __v, ...rest } = doc as Record<string, unknown> & { _id: unknown };
   void __v;
-  return { ...rest, id: String(_id) };
+  const lessons = lessonIdsOf(rest as { curriculum?: { lessons?: { id?: string }[] }[] }).length;
+  return { ...rest, id: String(_id), lessons };
 }
+
+/** What the public may see: no paid video links, lesson count from the curriculum. */
+const publicCourse = (doc: Record<string, unknown>) => stripPaidVideos(withId(doc));
 
 /** Public catalogue. `?featured=true` narrows to the home-page picks. */
 coursesRouter.get(
@@ -39,6 +45,25 @@ coursesRouter.get(
 
 /* ---------------------------------------------------------------- admin -- */
 
+const lessonSchema = z.object({
+  id: z.string().optional(),
+  title: z.string().trim().min(1, "Every lesson needs a title."),
+  duration: z.coerce.number().min(0).default(0),
+  preview: z.coerce.boolean().default(false),
+  videoUrl: z
+    .string()
+    .trim()
+    .default("")
+    .refine((v) => v === "" || /^https?:\/\//i.test(v), "Lesson video must be a full https:// link."),
+  description: z.string().default(""),
+});
+
+const moduleSchema = z.object({
+  id: z.string().optional(),
+  title: z.string().trim().min(1, "Every section needs a title."),
+  lessons: z.array(lessonSchema).default([]),
+});
+
 const courseSchema = z.object({
   title: z.string().trim().min(2, "Give the course a title."),
   slug: z
@@ -51,15 +76,35 @@ const courseSchema = z.object({
   thumbnail: z.string().url("Thumbnail must be a URL."),
   heroImage: z.string().default(""),
   price: z.coerce.number({ message: "Enter a price." }).min(0, "Price can't be negative."),
-  discountPrice: z.coerce.number().min(0).optional(),
+  discountPrice: z.coerce.number().min(0).optional().nullable(),
   level: z.enum(["Beginner", "Intermediate", "Advanced"]),
   duration: z.string().default(""),
-  lessons: z.coerce.number().int().min(1, "A course needs at least one lesson."),
   category: z.string().trim().min(2, "Add a category."),
   featured: z.coerce.boolean().default(false),
   published: z.coerce.boolean().default(true),
   badge: z.string().optional(),
+  curriculum: z.array(moduleSchema).default([]),
+  whatYouWillLearn: z.array(z.string().trim().min(1)).default([]),
+  includedItems: z.array(z.string().trim().min(1)).default([]),
+  requirements: z.array(z.string().trim().min(1)).default([]),
+  faqs: z.array(z.object({ question: z.string().trim().min(1), answer: z.string().trim().min(1) })).default([]),
 });
+
+type CourseInput = z.infer<typeof courseSchema>;
+
+/** Shared rules for create and update. */
+function prepare(data: Partial<CourseInput>) {
+  const out: Record<string, unknown> = { ...data };
+  if (data.discountPrice != null && data.price !== undefined && data.discountPrice >= data.price) {
+    throw new HttpError(400, "Sale price has to be lower than the regular price.");
+  }
+  if (data.curriculum) {
+    const { curriculum, lessonCount } = normalizeCurriculum(data.curriculum);
+    out.curriculum = curriculum;
+    out.lessons = lessonCount;
+  }
+  return out;
+}
 
 coursesRouter.post(
   "/",
@@ -67,20 +112,19 @@ coursesRouter.post(
   requireAdmin,
   asyncHandler(async (req, res) => {
     const parsed = courseSchema.safeParse(req.body);
-    if (!parsed.success) {
-      throw new HttpError(400, parsed.error.issues[0]?.message ?? "Invalid course.");
-    }
+    if (!parsed.success) throw new HttpError(400, parsed.error.issues[0]?.message ?? "Invalid course.");
     if (await Course.exists({ slug: parsed.data.slug })) {
       throw new HttpError(409, "A course with that slug already exists.");
     }
+    const data = prepare(parsed.data);
+    if (data.published && !(data.lessons as number)) {
+      throw new HttpError(400, "Add at least one lesson before publishing.");
+    }
     const course = await Course.create({
-      ...parsed.data,
+      ...data,
       instructor: { id: "chef-simone", name: "Chef Simone Kathuria", title: "Founder & Head Pastry Chef", avatar: "" },
-      curriculum: [],
-      whatYouWillLearn: [],
-      includedItems: [],
     });
-    res.status(201).json({ course: publicCourse(course.toObject()) });
+    res.status(201).json({ course: withId(course.toObject()) });
   }),
 );
 
@@ -90,13 +134,33 @@ coursesRouter.patch(
   requireAdmin,
   asyncHandler(async (req, res) => {
     const parsed = courseSchema.partial().safeParse(req.body);
-    if (!parsed.success) {
-      throw new HttpError(400, parsed.error.issues[0]?.message ?? "Invalid course.");
+    if (!parsed.success) throw new HttpError(400, parsed.error.issues[0]?.message ?? "Invalid course.");
+
+    const existing = await Course.findById(req.params.id).lean();
+    if (!existing) throw new HttpError(404, "Course not found.");
+
+    const sent = onlySentFields(parsed.data, req.body);
+    // Compare the prices that will actually be in effect after this update —
+    // lowering the price below an existing sale price must be caught too.
+    const effectivePrice = sent.price ?? existing.price;
+    const effectiveSale = "discountPrice" in sent ? sent.discountPrice : existing.discountPrice ?? undefined;
+    if (effectiveSale != null && effectiveSale >= effectivePrice) {
+      throw new HttpError(400, "Sale price has to be lower than the regular price.");
     }
-    const update = onlySentFields(parsed.data, req.body);
-    const course = await Course.findByIdAndUpdate(req.params.id, update, { new: true });
-    if (!course) throw new HttpError(404, "Course not found.");
-    res.json({ course: publicCourse(course.toObject()) });
+    const data = prepare({ ...sent, discountPrice: undefined } as Partial<CourseInput>);
+    if ("discountPrice" in sent) {
+      if (sent.discountPrice == null) data.$unset = { discountPrice: 1 };
+      else data.discountPrice = sent.discountPrice;
+    }
+    if (sent.slug && sent.slug !== existing.slug && (await Course.exists({ slug: sent.slug }))) {
+      throw new HttpError(409, "A course with that slug already exists.");
+    }
+    const willPublish = sent.published ?? existing.published;
+    const lessonCount = (data.lessons as number | undefined) ?? lessonIdsOf(existing).length;
+    if (willPublish && lessonCount === 0) throw new HttpError(400, "Add at least one lesson before publishing.");
+
+    const course = await Course.findByIdAndUpdate(req.params.id, data, { new: true });
+    res.json({ course: withId(course!.toObject()) });
   }),
 );
 
@@ -105,6 +169,14 @@ coursesRouter.delete(
   authenticate,
   requireAdmin,
   asyncHandler(async (req, res) => {
+    // Paying students must never lose a course they bought.
+    const owners = await Enrollment.countDocuments({ course: req.params.id });
+    if (owners > 0) {
+      throw new HttpError(
+        409,
+        `${owners} student${owners === 1 ? " owns" : "s own"} this course, so it can't be deleted. Unpublish it to stop selling it.`,
+      );
+    }
     const course = await Course.findByIdAndDelete(req.params.id);
     if (!course) throw new HttpError(404, "Course not found.");
     res.json({ ok: true });

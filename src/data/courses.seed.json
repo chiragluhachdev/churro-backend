@@ -15,7 +15,7 @@
     },
     "level": "Beginner",
     "duration": "4h 10m",
-    "lessons": 12,
+    "lessons": 6,
     "rating": 4.8,
     "reviewCount": 320,
     "category": "Cakes",
@@ -28,34 +28,54 @@
           {
             "title": "Ingredients & equipment",
             "duration": 14,
-            "preview": true
+            "preview": true,
+            "id": "chocolate-cake-mastery-s1-l1",
+            "videoUrl": "",
+            "description": ""
           },
           {
             "title": "Understanding cocoa and chocolate",
-            "duration": 18
+            "duration": 18,
+            "id": "chocolate-cake-mastery-s1-l2",
+            "videoUrl": "",
+            "description": ""
           },
           {
             "title": "The creaming method",
-            "duration": 22
+            "duration": 22,
+            "id": "chocolate-cake-mastery-s1-l3",
+            "videoUrl": "",
+            "description": ""
           }
-        ]
+        ],
+        "id": "chocolate-cake-mastery-s1"
       },
       {
         "title": "Bake & Finish",
         "lessons": [
           {
             "title": "Baking the perfect sponge",
-            "duration": 26
+            "duration": 26,
+            "id": "chocolate-cake-mastery-s2-l1",
+            "videoUrl": "",
+            "description": ""
           },
           {
             "title": "Silky chocolate ganache",
-            "duration": 21
+            "duration": 21,
+            "id": "chocolate-cake-mastery-s2-l2",
+            "videoUrl": "",
+            "description": ""
           },
           {
             "title": "Layering, crumb coat & finish",
-            "duration": 30
+            "duration": 30,
+            "id": "chocolate-cake-mastery-s2-l3",
+            "videoUrl": "",
+            "description": ""
           }
-        ]
+        ],
+        "id": "chocolate-cake-mastery-s2"
       }
     ],
     "whatYouWillLearn": [
@@ -82,7 +102,7 @@
       },
       {
         "question": "How long do I have access to the course?",
-        "answer": "Lifetime access. Once you enrol, the course is yours to revisit whenever you like — no expiry."
+        "answer": "Lifetime access. Once you enroll, the course is yours to revisit whenever you like — no expiry."
       },
       {
         "question": "Can I download the recipe cards?",
@@ -110,7 +130,7 @@
     },
     "level": "Beginner",
     "duration": "2h 45m",
-    "lessons": 8,
+    "lessons": 5,
     "rating": 4.7,
     "reviewCount": 210,
     "category": "Fried & Street",
@@ -122,30 +142,47 @@
           {
             "title": "Why churro dough behaves differently",
             "duration": 12,
-            "preview": true
+            "preview": true,
+            "id": "churros-from-scratch-s1-l1",
+            "videoUrl": "",
+            "description": ""
           },
           {
             "title": "Cooking the paste",
-            "duration": 19
+            "duration": 19,
+            "id": "churros-from-scratch-s1-l2",
+            "videoUrl": "",
+            "description": ""
           },
           {
             "title": "Piping and shaping",
-            "duration": 17
+            "duration": 17,
+            "id": "churros-from-scratch-s1-l3",
+            "videoUrl": "",
+            "description": ""
           }
-        ]
+        ],
+        "id": "churros-from-scratch-s1"
       },
       {
         "title": "Frying & Serving",
         "lessons": [
           {
             "title": "Oil temperature control",
-            "duration": 20
+            "duration": 20,
+            "id": "churros-from-scratch-s2-l1",
+            "videoUrl": "",
+            "description": ""
           },
           {
             "title": "Cinnamon sugar & chocolate dip",
-            "duration": 16
+            "duration": 16,
+            "id": "churros-from-scratch-s2-l2",
+            "videoUrl": "",
+            "description": ""
           }
-        ]
+        ],
+        "id": "churros-from-scratch-s2"
       }
     ],
     "whatYouWillLearn": [
@@ -200,7 +237,7 @@
     },
     "level": "Intermediate",
     "duration": "3h 30m",
-    "lessons": 10,
+    "lessons": 6,
     "rating": 4.9,
     "reviewCount": 185,
     "category": "French Pastry",
@@ -212,34 +249,54 @@
           {
             "title": "Italian vs French meringue",
             "duration": 18,
-            "preview": true
+            "preview": true,
+            "id": "macaron-perfection-s1-l1",
+            "videoUrl": "",
+            "description": ""
           },
           {
             "title": "Macaronage — reading the batter",
-            "duration": 24
+            "duration": 24,
+            "id": "macaron-perfection-s1-l2",
+            "videoUrl": "",
+            "description": ""
           },
           {
             "title": "Piping and resting",
-            "duration": 15
+            "duration": 15,
+            "id": "macaron-perfection-s1-l3",
+            "videoUrl": "",
+            "description": ""
           }
-        ]
+        ],
+        "id": "macaron-perfection-s1"
       },
       {
         "title": "Bake & Fill",
         "lessons": [
           {
             "title": "Oven mapping and feet",
-            "duration": 22
+            "duration": 22,
+            "id": "macaron-perfection-s2-l1",
+            "videoUrl": "",
+            "description": ""
           },
           {
             "title": "Ganache and curd fillings",
-            "duration": 25
+            "duration": 25,
+            "id": "macaron-perfection-s2-l2",
+            "videoUrl": "",
+            "description": ""
           },
           {
             "title": "Troubleshooting hollows & cracks",
-            "duration": 20
+            "duration": 20,
+            "id": "macaron-perfection-s2-l3",
+            "videoUrl": "",
+            "description": ""
           }
-        ]
+        ],
+        "id": "macaron-perfection-s2"
       }
     ],
     "whatYouWillLearn": [
@@ -295,7 +352,7 @@
     },
     "level": "Intermediate",
     "duration": "3h 55m",
-    "lessons": 11,
+    "lessons": 5,
     "rating": 4.8,
     "reviewCount": 142,
     "category": "Cheesecakes",
@@ -307,30 +364,47 @@
           {
             "title": "Biscuit and pastry crusts",
             "duration": 16,
-            "preview": true
+            "preview": true,
+            "id": "cheesecake-secrets-s1-l1",
+            "videoUrl": "",
+            "description": ""
           },
           {
             "title": "Cream cheese, ratios and texture",
-            "duration": 23
+            "duration": 23,
+            "id": "cheesecake-secrets-s1-l2",
+            "videoUrl": "",
+            "description": ""
           }
-        ]
+        ],
+        "id": "cheesecake-secrets-s1"
       },
       {
         "title": "Three Cheesecakes",
         "lessons": [
           {
             "title": "Classic baked with water bath",
-            "duration": 28
+            "duration": 28,
+            "id": "cheesecake-secrets-s2-l1",
+            "videoUrl": "",
+            "description": ""
           },
           {
             "title": "No-bake set with gelatine",
-            "duration": 21
+            "duration": 21,
+            "id": "cheesecake-secrets-s2-l2",
+            "videoUrl": "",
+            "description": ""
           },
           {
             "title": "Basque burnt cheesecake",
-            "duration": 24
+            "duration": 24,
+            "id": "cheesecake-secrets-s2-l3",
+            "videoUrl": "",
+            "description": ""
           }
-        ]
+        ],
+        "id": "cheesecake-secrets-s2"
       }
     ],
     "whatYouWillLearn": [
@@ -385,7 +459,7 @@
     },
     "level": "Intermediate",
     "duration": "5h 15m",
-    "lessons": 14,
+    "lessons": 5,
     "rating": 4.9,
     "reviewCount": 268,
     "category": "Breads",
@@ -397,30 +471,47 @@
           {
             "title": "Flour, water and wild yeast",
             "duration": 17,
-            "preview": true
+            "preview": true,
+            "id": "artisan-sourdough-s1-l1",
+            "videoUrl": "",
+            "description": ""
           },
           {
             "title": "Feeding schedule and readiness",
-            "duration": 21
+            "duration": 21,
+            "id": "artisan-sourdough-s1-l2",
+            "videoUrl": "",
+            "description": ""
           }
-        ]
+        ],
+        "id": "artisan-sourdough-s1"
       },
       {
         "title": "Mix, Shape, Bake",
         "lessons": [
           {
             "title": "Autolyse and bulk fermentation",
-            "duration": 28
+            "duration": 28,
+            "id": "artisan-sourdough-s2-l1",
+            "videoUrl": "",
+            "description": ""
           },
           {
             "title": "Shaping and cold retard",
-            "duration": 24
+            "duration": 24,
+            "id": "artisan-sourdough-s2-l2",
+            "videoUrl": "",
+            "description": ""
           },
           {
             "title": "Scoring and the Dutch oven bake",
-            "duration": 26
+            "duration": 26,
+            "id": "artisan-sourdough-s2-l3",
+            "videoUrl": "",
+            "description": ""
           }
-        ]
+        ],
+        "id": "artisan-sourdough-s2"
       }
     ],
     "whatYouWillLearn": [
@@ -434,7 +525,8 @@
       "Starter troubleshooting guide",
       "Lifetime access",
       "Certificate of completion"
-    ]
+    ],
+    "faqs": []
   },
   {
     "title": "Croissants & Laminated Doughs",
@@ -452,7 +544,7 @@
     },
     "level": "Advanced",
     "duration": "6h 05m",
-    "lessons": 16,
+    "lessons": 6,
     "rating": 4.8,
     "reviewCount": 154,
     "category": "French Pastry",
@@ -465,34 +557,54 @@
           {
             "title": "Choosing your butter",
             "duration": 14,
-            "preview": true
+            "preview": true,
+            "id": "croissants-and-laminated-doughs-s1-l1",
+            "videoUrl": "",
+            "description": ""
           },
           {
             "title": "Mixing the détrempe",
-            "duration": 22
+            "duration": 22,
+            "id": "croissants-and-laminated-doughs-s1-l2",
+            "videoUrl": "",
+            "description": ""
           },
           {
             "title": "Locking in the butter",
-            "duration": 19
+            "duration": 19,
+            "id": "croissants-and-laminated-doughs-s1-l3",
+            "videoUrl": "",
+            "description": ""
           }
-        ]
+        ],
+        "id": "croissants-and-laminated-doughs-s1"
       },
       {
         "title": "Turns & Shaping",
         "lessons": [
           {
             "title": "Single and double turns",
-            "duration": 27
+            "duration": 27,
+            "id": "croissants-and-laminated-doughs-s2-l1",
+            "videoUrl": "",
+            "description": ""
           },
           {
             "title": "Rolling, cutting and shaping",
-            "duration": 30
+            "duration": 30,
+            "id": "croissants-and-laminated-doughs-s2-l2",
+            "videoUrl": "",
+            "description": ""
           },
           {
             "title": "Proofing and the bake",
-            "duration": 25
+            "duration": 25,
+            "id": "croissants-and-laminated-doughs-s2-l3",
+            "videoUrl": "",
+            "description": ""
           }
-        ]
+        ],
+        "id": "croissants-and-laminated-doughs-s2"
       }
     ],
     "whatYouWillLearn": [
@@ -506,7 +618,8 @@
       "Lamination timing chart",
       "Lifetime access",
       "Certificate of completion"
-    ]
+    ],
+    "faqs": []
   },
   {
     "title": "Cookie Craft",
@@ -524,7 +637,7 @@
     },
     "level": "Beginner",
     "duration": "2h 30m",
-    "lessons": 9,
+    "lessons": 5,
     "rating": 4.7,
     "reviewCount": 412,
     "category": "Basics",
@@ -536,30 +649,47 @@
           {
             "title": "Sugar, fat and flour ratios",
             "duration": 18,
-            "preview": true
+            "preview": true,
+            "id": "cookie-craft-s1-l1",
+            "videoUrl": "",
+            "description": ""
           },
           {
             "title": "Why resting dough matters",
-            "duration": 15
+            "duration": 15,
+            "id": "cookie-craft-s1-l2",
+            "videoUrl": "",
+            "description": ""
           }
-        ]
+        ],
+        "id": "cookie-craft-s1"
       },
       {
         "title": "The Bakes",
         "lessons": [
           {
             "title": "Chewy chocolate chip",
-            "duration": 20
+            "duration": 20,
+            "id": "cookie-craft-s2-l1",
+            "videoUrl": "",
+            "description": ""
           },
           {
             "title": "Crisp shortbread",
-            "duration": 18
+            "duration": 18,
+            "id": "cookie-craft-s2-l2",
+            "videoUrl": "",
+            "description": ""
           },
           {
             "title": "Soft-baked and stuffed",
-            "duration": 22
+            "duration": 22,
+            "id": "cookie-craft-s2-l3",
+            "videoUrl": "",
+            "description": ""
           }
-        ]
+        ],
+        "id": "cookie-craft-s2"
       }
     ],
     "whatYouWillLearn": [
@@ -573,7 +703,8 @@
       "Printable recipe cards",
       "Lifetime access",
       "Certificate of completion"
-    ]
+    ],
+    "faqs": []
   },
   {
     "title": "Doughnuts & Fried Sweets",
@@ -591,7 +722,7 @@
     },
     "level": "Beginner",
     "duration": "3h 10m",
-    "lessons": 10,
+    "lessons": 4,
     "rating": 4.6,
     "reviewCount": 176,
     "category": "Fried & Street",
@@ -603,26 +734,40 @@
           {
             "title": "Building an enriched dough",
             "duration": 22,
-            "preview": true
+            "preview": true,
+            "id": "doughnuts-and-fried-sweets-s1-l1",
+            "videoUrl": "",
+            "description": ""
           },
           {
             "title": "Proofing for a light crumb",
-            "duration": 18
+            "duration": 18,
+            "id": "doughnuts-and-fried-sweets-s1-l2",
+            "videoUrl": "",
+            "description": ""
           }
-        ]
+        ],
+        "id": "doughnuts-and-fried-sweets-s1"
       },
       {
         "title": "Fry & Finish",
         "lessons": [
           {
             "title": "Oil temperature and timing",
-            "duration": 20
+            "duration": 20,
+            "id": "doughnuts-and-fried-sweets-s2-l1",
+            "videoUrl": "",
+            "description": ""
           },
           {
             "title": "Glazes, fillings and sugars",
-            "duration": 24
+            "duration": 24,
+            "id": "doughnuts-and-fried-sweets-s2-l2",
+            "videoUrl": "",
+            "description": ""
           }
-        ]
+        ],
+        "id": "doughnuts-and-fried-sweets-s2"
       }
     ],
     "whatYouWillLearn": [
@@ -636,7 +781,8 @@
       "Printable recipe cards",
       "Lifetime access",
       "Certificate of completion"
-    ]
+    ],
+    "faqs": []
   },
   {
     "title": "Cupcakes & Buttercream",
@@ -654,7 +800,7 @@
     },
     "level": "Beginner",
     "duration": "3h 20m",
-    "lessons": 11,
+    "lessons": 4,
     "rating": 4.8,
     "reviewCount": 233,
     "category": "Cakes",
@@ -666,26 +812,40 @@
           {
             "title": "Batter and even domes",
             "duration": 19,
-            "preview": true
+            "preview": true,
+            "id": "cupcakes-and-buttercream-s1-l1",
+            "videoUrl": "",
+            "description": ""
           },
           {
             "title": "Filling and baking evenly",
-            "duration": 17
+            "duration": 17,
+            "id": "cupcakes-and-buttercream-s1-l2",
+            "videoUrl": "",
+            "description": ""
           }
-        ]
+        ],
+        "id": "cupcakes-and-buttercream-s1"
       },
       {
         "title": "Buttercream & Piping",
         "lessons": [
           {
             "title": "Swiss, Italian and American",
-            "duration": 26
+            "duration": 26,
+            "id": "cupcakes-and-buttercream-s2-l1",
+            "videoUrl": "",
+            "description": ""
           },
           {
             "title": "Piping techniques and nozzles",
-            "duration": 23
+            "duration": 23,
+            "id": "cupcakes-and-buttercream-s2-l2",
+            "videoUrl": "",
+            "description": ""
           }
-        ]
+        ],
+        "id": "cupcakes-and-buttercream-s2"
       }
     ],
     "whatYouWillLearn": [
@@ -699,7 +859,8 @@
       "Piping nozzle reference",
       "Lifetime access",
       "Certificate of completion"
-    ]
+    ],
+    "faqs": []
   },
   {
     "title": "Layer Cake Architecture",
@@ -717,7 +878,7 @@
     },
     "level": "Advanced",
     "duration": "4h 45m",
-    "lessons": 13,
+    "lessons": 5,
     "rating": 4.9,
     "reviewCount": 121,
     "category": "Cakes",
@@ -729,30 +890,47 @@
           {
             "title": "Baking level layers",
             "duration": 21,
-            "preview": true
+            "preview": true,
+            "id": "layer-cake-architecture-s1-l1",
+            "videoUrl": "",
+            "description": ""
           },
           {
             "title": "Damming and filling ratios",
-            "duration": 24
+            "duration": 24,
+            "id": "layer-cake-architecture-s1-l2",
+            "videoUrl": "",
+            "description": ""
           }
-        ]
+        ],
+        "id": "layer-cake-architecture-s1"
       },
       {
         "title": "Finish",
         "lessons": [
           {
             "title": "Crumb coat and sharp edges",
-            "duration": 28
+            "duration": 28,
+            "id": "layer-cake-architecture-s2-l1",
+            "videoUrl": "",
+            "description": ""
           },
           {
             "title": "Drips, textures and decoration",
-            "duration": 26
+            "duration": 26,
+            "id": "layer-cake-architecture-s2-l2",
+            "videoUrl": "",
+            "description": ""
           },
           {
             "title": "Transport and storage",
-            "duration": 16
+            "duration": 16,
+            "id": "layer-cake-architecture-s2-l3",
+            "videoUrl": "",
+            "description": ""
           }
-        ]
+        ],
+        "id": "layer-cake-architecture-s2"
       }
     ],
     "whatYouWillLearn": [
@@ -766,6 +944,7 @@
       "Cake portioning chart",
       "Lifetime access",
       "Certificate of completion"
-    ]
+    ],
+    "faqs": []
   }
 ]
