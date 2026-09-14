@@ -18,7 +18,14 @@ app.use(cors({ origin: env.corsOrigin, credentials: true }));
 app.use(express.json({ limit: "1mb" }));
 
 app.get("/health", (_req, res) => {
-  res.json({ ok: true, service: "churro-academy-api" });
+  res.json({
+    ok: true,
+    service: "churro-academy-api",
+    // Whether the chat model is configured — reports presence only, never the key.
+    chatModel: process.env.GROQ_API_KEY
+      ? (process.env.GROQ_MODEL ?? "openai/gpt-oss-20b")
+      : null,
+  });
 });
 
 app.use("/api/auth", authRouter);

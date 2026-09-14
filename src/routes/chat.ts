@@ -50,6 +50,46 @@ async function courseContext(): Promise<string> {
     .join("\n");
 }
 
+/** Edit distance between two short words. */
+function levenshtein(a: string, b: string): number {
+  const row = Array.from({ length: b.length + 1 }, (_, i) => i);
+  for (let i = 1; i <= a.length; i++) {
+    let prev = row[0];
+    row[0] = i;
+    for (let j = 1; j <= b.length; j++) {
+      const temp = row[j];
+      row[j] = Math.min(
+        row[j] + 1,
+        row[j - 1] + 1,
+        prev + (a[i - 1] === b[j - 1] ? 0 : 1),
+      );
+      prev = temp;
+    }
+  }
+  return row[b.length];
+}
+
+/**
+ * True when the text contains a keyword — or a near-miss typo of one, so
+ * "corses" still finds "courses". Short words get no slack: at four letters a
+ * single edit turns "cost" into "most", which would misfire.
+ */
+function mentions(text: string, keywords: string[]): boolean {
+  const lower = text.toLowerCase();
+  const words = lower.replace(/[^a-z0-9\s]/g, " ").split(/\s+/).filter(Boolean);
+
+  return keywords.some((key) => {
+    if (lower.includes(key)) return true;
+    if (key.includes(" ")) return false; // phrases match exactly or not at all
+    const slack = key.length <= 4 ? 0 : key.length <= 7 ? 1 : 2;
+    if (slack === 0) return false;
+    return words.some(
+      (word) =>
+        Math.abs(word.length - key.length) <= slack && levenshtein(word, key) <= slack,
+    );
+  });
+}
+
 /** Keyword fallback — grounded in the same live catalogue, no model required. */
 async function localAnswer(question: string): Promise<string> {
   const q = question.toLowerCase();
@@ -59,7 +99,7 @@ async function localAnswer(question: string): Promise<string> {
   }
 
   for (const policy of POLICIES) {
-    if (policy.keys.some((key) => q.includes(key))) return policy.answer;
+    if (mentions(q, policy.keys)) return policy.answer;
   }
 
   const courses = await Course.find({ published: true })
@@ -69,20 +109,23 @@ async function localAnswer(question: string): Promise<string> {
   // Name-matched course question.
   const hit = courses.find((c) => {
     const words = String(c.title).toLowerCase().split(/\s+/).filter((w) => w.length > 4);
-    return words.some((w) => q.includes(w));
+    return mentions(q, words);
   });
   if (hit) {
     return `${hit.title} is ₹${hit.discountPrice ?? hit.price} — ${hit.lessons} lessons, ${hit.duration}, pitched at ${String(hit.level).toLowerCase()} level. You get lifetime access and a certificate at the end. Want the link?`;
   }
 
-  if (q.includes("price") || q.includes("cost") || q.includes("how much") || q.includes("fee")) {
+  if (mentions(q, ["price", "prices", "cost", "costs", "how much", "fee", "fees", "charges"])) {
     const prices = courses.map((c) => Number(c.discountPrice ?? c.price));
     const min = Math.min(...prices);
     const max = Math.max(...prices);
     return `Courses run from ₹${min} to ₹${max}, bought individually with lifetime access — there's no subscription. Which one were you looking at?`;
   }
 
-  if (q.includes("course") || q.includes("what do you") || q.includes("list") || q.includes("teach")) {
+  if (
+    mentions(q, ["course", "courses", "class", "classes", "program", "programs", "catalogue", "offer", "teach"]) ||
+    mentions(q, ["what do you", "what can i learn", "list"])
+  ) {
     return `We have ${courses.length} courses across cakes, French pastry, breads and fried sweets — including ${courses
       .slice(0, 3)
       .map((c) => c.title)
@@ -166,7 +209,10 @@ chatRouter.post(
     let source: "llm" | "local" = "llm";
     try {
       reply = await llmAnswer(messages);
-    } catch {
+    } catch (error) {
+      // Logged so a missing key or retired model shows up in the host's logs,
+      // instead of the bot quietly degrading to keyword matching forever.
+      console.warn("[chat] model unavailable, using keyword fallback:", String(error));
       source = "local";
       reply = await localAnswer(last.content);
     }
