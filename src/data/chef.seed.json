@@ -1,0 +1,57 @@
+{
+  "name": "Chef Simone Kathuria",
+  "title": "Founder & Head Pastry Chef",
+  "tagline": "Founder of Churro Academy. She writes, tests and teaches every course.",
+  "bio": "Simone started Churro Academy on a simple idea: the technique behind good baking should be taught plainly, without mystique. She develops every recipe on the platform and teaches each course herself.",
+  "longBio": [
+    "Simone started Churro Academy on a simple idea — that the technique behind good baking should be taught plainly, without mystique and without gatekeeping. Too many recipes tell you what to do and never why it works, which leaves you stuck the moment something goes wrong.",
+    "Every course on the platform is hers: she writes the curriculum, tests each recipe until it is genuinely repeatable in a home kitchen, and films the lessons herself. The mistakes stay in the footage on purpose — watching a batch fail and get corrected teaches more than watching a perfect one.",
+    "She teaches across the whole catalogue, from a first tray of cookies through to laminated doughs, and answers questions in the student community personally."
+  ],
+  "avatar": "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=160&h=160&fit=crop&crop=faces&q=80&auto=format",
+  "specialities": [
+    "Chocolate & cakes",
+    "Churros & fried sweets",
+    "French pastry",
+    "Recipe development"
+  ],
+  "stats": [
+    {
+      "value": "10+ Years",
+      "label": "Professional Experience",
+      "icon": "experience"
+    },
+    {
+      "value": "500+",
+      "label": "Recipes Developed",
+      "icon": "recipes"
+    },
+    {
+      "value": "20K+",
+      "label": "Students Taught",
+      "icon": "students"
+    },
+    {
+      "value": "100%",
+      "label": "Passion for Baking",
+      "icon": "passion"
+    }
+  ],
+  "socials": [
+    {
+      "label": "Instagram",
+      "href": "https://www.instagram.com/simonekathuria/",
+      "icon": "instagram"
+    },
+    {
+      "label": "YouTube",
+      "href": "https://www.youtube.com/@Simonekathuria",
+      "icon": "youtube"
+    },
+    {
+      "label": "Pinterest",
+      "href": "#",
+      "icon": "pinterest"
+    }
+  ]
+}

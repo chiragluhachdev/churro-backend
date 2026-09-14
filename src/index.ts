@@ -8,6 +8,7 @@ import { HttpError } from "./lib/http.js";
 import { adminRouter } from "./routes/admin.js";
 import { authRouter } from "./routes/auth.js";
 import { chatRouter } from "./routes/chat.js";
+import { adminContentRouter, contentRouter } from "./routes/content.js";
 import { coursesRouter } from "./routes/courses.js";
 import { enrollmentsRouter } from "./routes/enrollments.js";
 import { uploadRouter } from "./routes/upload.js";
@@ -32,6 +33,8 @@ app.use("/api/auth", authRouter);
 app.use("/api/chat", chatRouter);
 app.use("/api/courses", coursesRouter);
 app.use("/api/enrollments", enrollmentsRouter);
+app.use("/api/content", contentRouter);
+app.use("/api/admin/content", adminContentRouter);
 app.use("/api/admin", adminRouter);
 app.use("/api/upload", uploadRouter);
 

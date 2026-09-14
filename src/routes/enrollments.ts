@@ -68,7 +68,8 @@ enrollmentsRouter.post(
     const parsed = enrollSchema.safeParse(req.body);
     if (!parsed.success) throw new HttpError(400, "Which course?");
 
-    const course = await Course.findById(parsed.data.courseId);
+    // A draft must not be purchasable, even by someone holding its id.
+    const course = await Course.findOne({ _id: parsed.data.courseId, published: true });
     if (!course) throw new HttpError(404, "Course not found.");
 
     const existing = await Enrollment.findOne({ user: req.user!.sub, course: course._id });

@@ -1,0 +1,140 @@
+[
+  {
+    "quote": "The churros course was a game changer. My family can't stop asking for more.",
+    "name": "Ananya S.",
+    "location": "Pune",
+    "avatar": "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=160&h=160&fit=crop&crop=faces&q=80&auto=format",
+    "rating": 5,
+    "course": "Churros From Scratch",
+    "story": "I'd tried churros twice before and both times they came out raw in the middle. The section on oil temperature explained exactly why. I now make them most weekends, and my sister has started selling them at her cafe.",
+    "order": 1,
+    "featured": true,
+    "published": true
+  },
+  {
+    "quote": "Clear instructions, beautiful recipes and Chef Simone is genuinely encouraging.",
+    "name": "Ritvik M.",
+    "location": "Bengaluru",
+    "avatar": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=160&h=160&fit=crop&crop=faces&q=80&auto=format",
+    "rating": 5,
+    "course": "Chocolate Cake Mastery",
+    "story": "I came in having never baked a cake that wasn't from a box. The ganache lesson alone was worth it \u2014 I finally understand why mine used to split.",
+    "order": 2,
+    "featured": true,
+    "published": true
+  },
+  {
+    "quote": "I've tried many baking courses, but this is by far the best structured one.",
+    "name": "Mehak K.",
+    "location": "Delhi",
+    "avatar": "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=160&h=160&fit=crop&crop=faces&q=80&auto=format",
+    "rating": 5,
+    "course": "Macaron Perfection",
+    "story": "Macarons broke me for a year. The troubleshooting module named the exact problem I had \u2014 under-mixed batter, not oven temperature like everyone told me. Third batch after that was perfect.",
+    "order": 3,
+    "featured": true,
+    "published": true
+  },
+  {
+    "quote": "Finally learned to bake a cheesecake that actually looks professional.",
+    "name": "Sneha T.",
+    "location": "Mumbai",
+    "avatar": "https://images.unsplash.com/photo-1531123897727-8f129e1688ce?w=160&h=160&fit=crop&crop=faces&q=80&auto=format",
+    "rating": 5,
+    "course": "Cheesecake Secrets",
+    "story": "The water bath section changed everything. No more cracks. I've made the basque version six times now and it's become the thing people ask me to bring.",
+    "order": 4,
+    "featured": true,
+    "published": true
+  },
+  {
+    "quote": "The sourdough module finally made fermentation click for me.",
+    "name": "Karan D.",
+    "location": "Chandigarh",
+    "avatar": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=160&h=160&fit=crop&crop=faces&q=80&auto=format",
+    "rating": 5,
+    "course": "Artisan Sourdough",
+    "story": "I'd been feeding a starter for months with nothing to show for it. Learning to read the dough instead of watching the clock was the missing piece.",
+    "order": 5,
+    "featured": true,
+    "published": true
+  },
+  {
+    "quote": "Worth it for the buttercream section alone.",
+    "name": "Priya N.",
+    "location": "Hyderabad",
+    "avatar": "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=160&h=160&fit=crop&crop=faces&q=80&auto=format",
+    "rating": 5,
+    "course": "Cupcakes & Buttercream",
+    "order": 6,
+    "featured": true,
+    "published": true
+  },
+  {
+    "quote": "Lessons are short enough to actually finish after work.",
+    "name": "Aditya R.",
+    "location": "Kolkata",
+    "avatar": "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=160&h=160&fit=crop&crop=faces&q=80&auto=format",
+    "rating": 4,
+    "course": "Cookie Craft",
+    "order": 7,
+    "featured": true,
+    "published": true
+  },
+  {
+    "quote": "The croissant course is genuinely advanced. It respects your time and your intelligence.",
+    "name": "Farah A.",
+    "location": "Ahmedabad",
+    "avatar": "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=160&h=160&fit=crop&crop=faces&q=80&auto=format",
+    "rating": 5,
+    "course": "Croissants & Laminated Doughs",
+    "story": "I've read three books on lamination. Watching someone actually do the turns, at normal speed, with the mistakes left in, taught me more than all of them.",
+    "order": 8,
+    "featured": true,
+    "published": true
+  },
+  {
+    "quote": "My doughnuts stopped coming out greasy after one lesson.",
+    "name": "Vikram J.",
+    "location": "Jaipur",
+    "avatar": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=160&h=160&fit=crop&crop=faces&q=80&auto=format",
+    "rating": 5,
+    "course": "Doughnuts & Fried Sweets",
+    "order": 9,
+    "featured": true,
+    "published": true
+  },
+  {
+    "quote": "Sharp edges on a layer cake, finally. I'd given up on that.",
+    "name": "Ishita B.",
+    "location": "Lucknow",
+    "avatar": "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=160&h=160&fit=crop&crop=faces&q=80&auto=format",
+    "rating": 5,
+    "course": "Layer Cake Architecture",
+    "order": 10,
+    "featured": true,
+    "published": true
+  },
+  {
+    "quote": "Good value. The recipe cards get printed and used, not bookmarked.",
+    "name": "Rahul S.",
+    "location": "Indore",
+    "avatar": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=160&h=160&fit=crop&crop=faces&q=80&auto=format",
+    "rating": 4,
+    "course": "Chocolate Cake Mastery",
+    "order": 11,
+    "featured": true,
+    "published": true
+  },
+  {
+    "quote": "I bake for my kids now instead of buying. That's the whole review.",
+    "name": "Divya P.",
+    "location": "Kochi",
+    "avatar": "https://images.unsplash.com/photo-1531123897727-8f129e1688ce?w=160&h=160&fit=crop&crop=faces&q=80&auto=format",
+    "rating": 5,
+    "course": "Cookie Craft",
+    "order": 12,
+    "featured": true,
+    "published": true
+  }
+]

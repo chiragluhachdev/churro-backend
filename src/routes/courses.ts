@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { z } from "zod";
 
-import { asyncHandler, HttpError } from "../lib/http.js";
+import { asyncHandler, HttpError, onlySentFields } from "../lib/http.js";
 import { authenticate, requireAdmin } from "../middleware/auth.js";
 import { Course } from "../models/Course.js";
 
@@ -26,8 +26,12 @@ coursesRouter.get(
 
 coursesRouter.get(
   "/:slug",
+  authenticate,
   asyncHandler(async (req, res) => {
-    const doc = await Course.findOne({ slug: req.params.slug }).lean();
+    // Drafts are invisible to the public; admins can still preview them.
+    const filter: Record<string, unknown> = { slug: req.params.slug };
+    if (req.user?.role !== "admin") filter.published = true;
+    const doc = await Course.findOne(filter).lean();
     if (!doc) throw new HttpError(404, "Course not found.");
     res.json({ course: publicCourse(doc as Record<string, unknown>) });
   }),
@@ -36,22 +40,22 @@ coursesRouter.get(
 /* ---------------------------------------------------------------- admin -- */
 
 const courseSchema = z.object({
-  title: z.string().trim().min(2),
+  title: z.string().trim().min(2, "Give the course a title."),
   slug: z
     .string()
     .trim()
     .toLowerCase()
     .regex(/^[a-z0-9][a-z0-9-]*[a-z0-9]$/, "Slugs use lowercase letters, numbers and hyphens."),
-  shortDescription: z.string().trim().min(4),
+  shortDescription: z.string().trim().min(4, "Add a short description."),
   description: z.string().trim().default(""),
   thumbnail: z.string().url("Thumbnail must be a URL."),
   heroImage: z.string().default(""),
-  price: z.coerce.number().min(0),
+  price: z.coerce.number({ message: "Enter a price." }).min(0, "Price can't be negative."),
   discountPrice: z.coerce.number().min(0).optional(),
   level: z.enum(["Beginner", "Intermediate", "Advanced"]),
   duration: z.string().default(""),
-  lessons: z.coerce.number().int().min(1),
-  category: z.string().trim().min(2),
+  lessons: z.coerce.number().int().min(1, "A course needs at least one lesson."),
+  category: z.string().trim().min(2, "Add a category."),
   featured: z.coerce.boolean().default(false),
   published: z.coerce.boolean().default(true),
   badge: z.string().optional(),
@@ -89,7 +93,8 @@ coursesRouter.patch(
     if (!parsed.success) {
       throw new HttpError(400, parsed.error.issues[0]?.message ?? "Invalid course.");
     }
-    const course = await Course.findByIdAndUpdate(req.params.id, parsed.data, { new: true });
+    const update = onlySentFields(parsed.data, req.body);
+    const course = await Course.findByIdAndUpdate(req.params.id, update, { new: true });
     if (!course) throw new HttpError(404, "Course not found.");
     res.json({ course: publicCourse(course.toObject()) });
   }),

@@ -18,3 +18,21 @@ export function asyncHandler<T extends Request>(
     fn(req, res, next).catch(next);
   };
 }
+
+/**
+ * Keeps only the keys the client actually sent.
+ *
+ * Zod applies `.default()` values even under `.partial()`, so parsing a PATCH
+ * body of `{ price: 1 }` yields `{ price: 1, description: "", featured: false }`
+ * — and writing that back silently erases every defaulted field. Every PATCH
+ * must pass its parsed data through here before it touches the database.
+ */
+export function onlySentFields<T extends Record<string, unknown>>(
+  parsed: T,
+  body: unknown,
+): Partial<T> {
+  const sent = body && typeof body === "object" ? Object.keys(body) : [];
+  return Object.fromEntries(
+    Object.entries(parsed).filter(([key]) => sent.includes(key)),
+  ) as Partial<T>;
+}
