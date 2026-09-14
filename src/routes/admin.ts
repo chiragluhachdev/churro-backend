@@ -2,12 +2,12 @@ import { Router } from "express";
 import mongoose from "mongoose";
 
 import { asyncHandler, HttpError } from "../lib/http.js";
-import { Order } from "../models/Order.js";
-import { shapeEnrollment } from "./enrollments.js";
+import { gstBreakdown } from "../lib/invoice.js";
+import { dispatchOrderEmail } from "../lib/orderEmail.js";
 import { authenticate, requireAdmin } from "../middleware/auth.js";
+import { BillingSettings } from "../models/BillingSettings.js";
 import { Course } from "../models/Course.js";
-import { Enrollment } from "../models/Enrollment.js";
-import { User } from "../models/User.js";
+import { Order } from "../models/Order.js";
 
 export const adminRouter = Router();
 
@@ -16,17 +16,17 @@ adminRouter.use(authenticate, requireAdmin);
 adminRouter.get(
   "/stats",
   asyncHandler(async (_req, res) => {
-    const [users, courses, enrollments, revenue] = await Promise.all([
-      User.countDocuments({}),
+    const [courses, paidOrders, customers, revenue] = await Promise.all([
       Course.countDocuments({}),
-      Enrollment.countDocuments({}),
-      Enrollment.aggregate<{ total: number }>([
-        { $match: { paymentStatus: "paid" } },
-        { $group: { _id: null, total: { $sum: "$amountPaid" } } },
+      Order.countDocuments({ status: "paid" }),
+      Order.distinct("buyerEmail", { status: "paid" }),
+      Order.aggregate<{ total: number }>([
+        { $match: { status: "paid" } },
+        { $group: { _id: null, total: { $sum: "$amount" } } },
       ]),
     ]);
     res.json({
-      stats: { users, courses, enrollments, revenue: revenue[0]?.total ?? 0 },
+      stats: { courses, paidOrders, customers: customers.length, revenue: revenue[0]?.total ?? 0 },
     });
   }),
 );
@@ -36,7 +36,8 @@ adminRouter.get(
   "/courses",
   asyncHandler(async (_req, res) => {
     const docs = await Course.find({}).sort({ createdAt: -1 }).lean();
-    const counts = await Enrollment.aggregate<{ _id: unknown; n: number }>([
+    const counts = await Order.aggregate<{ _id: unknown; n: number }>([
+      { $match: { status: "paid" } },
       { $group: { _id: "$course", n: { $sum: 1 } } },
     ]);
     const byCourse = new Map(counts.map((c) => [String(c._id), c.n]));
@@ -51,119 +52,108 @@ adminRouter.get(
   }),
 );
 
+/** The billing/audit screen: every order, with the GST breakdown behind each amount. */
 adminRouter.get(
-  "/users",
-  asyncHandler(async (_req, res) => {
-    const docs = await User.find({}).sort({ createdAt: -1 }).limit(200).lean();
-    const counts = await Enrollment.aggregate<{ _id: unknown; n: number }>([
-      { $group: { _id: "$user", n: { $sum: 1 } } },
+  "/orders",
+  asyncHandler(async (req, res) => {
+    const filter: Record<string, unknown> = {};
+    const status = String(req.query.status ?? "");
+    if (["created", "paid", "failed", "expired"].includes(status)) filter.status = status;
+    const q = String(req.query.q ?? "").trim();
+    if (q) {
+      const rx = new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i");
+      filter.$or = [{ buyerName: rx }, { buyerEmail: rx }, { buyerPhone: rx }, { courseTitle: rx }, { invoiceNumber: rx }];
+    }
+
+    const [docs, settings] = await Promise.all([
+      Order.find(filter).sort({ createdAt: -1 }).limit(500).lean(),
+      BillingSettings.findOne({ key: "billing" }).lean(),
     ]);
-    const byUser = new Map(counts.map((c) => [String(c._id), c.n]));
+    const gstRate = settings?.gstRate ?? 18;
 
     res.json({
-      users: docs.map((d) => ({
+      orders: docs.map((d) => ({
         id: String(d._id),
-        name: d.name,
-        username: d.username,
-        email: d.email,
-        role: d.role,
+        invoiceNumber: d.invoiceNumber || "",
+        buyerName: d.buyerName,
+        buyerEmail: d.buyerEmail,
+        buyerPhone: d.buyerPhone,
+        courseTitle: d.courseTitle,
+        amount: d.amount,
+        listPrice: d.listPrice,
+        status: d.status,
+        provider: d.provider,
+        gst: gstBreakdown(d.amount, gstRate),
         createdAt: (d.createdAt as Date | undefined)?.toISOString(),
-        enrollmentCount: byUser.get(String(d._id)) ?? 0,
+        paidAt: d.paidAt ? new Date(d.paidAt).toISOString() : undefined,
+        emailSentAt: d.emailSentAt ? new Date(d.emailSentAt).toISOString() : undefined,
+        emailError: d.emailError || "",
       })),
     });
   }),
 );
 
+/** One order, with everything the printable invoice needs. */
 adminRouter.get(
-  "/enrollments",
-  asyncHandler(async (_req, res) => {
-    const docs = await Enrollment.find({})
-      .populate("user", "name username email")
-      .populate("course", "title slug")
-      .sort({ createdAt: -1 })
-      .limit(200)
-      .lean();
-
-    res.json({
-      enrollments: docs.map((d) => {
-        const raw = d as Record<string, unknown>;
-        const user = raw.user as Record<string, unknown> | null;
-        const course = raw.course as Record<string, unknown> | null;
-        return {
-          id: String(raw._id),
-          user: user ? { id: String(user._id), name: user.name, username: user.username, email: user.email } : null,
-          course: course ? { title: course.title, slug: course.slug } : null,
-          amountPaid: Number(raw.amountPaid ?? 0),
-          paymentStatus: raw.paymentStatus,
-          createdAt: new Date(raw.createdAt as string).toISOString(),
-        };
-      }),
-    });
-  }),
-);
-
-/** Everything about one student: account, courses, lesson-level progress, payments. */
-adminRouter.get(
-  "/users/:id",
+  "/orders/:id",
   asyncHandler(async (req, res) => {
     const id = String(req.params.id);
-    if (!mongoose.isValidObjectId(id)) throw new HttpError(404, "Student not found.");
-    const user = await User.findById(id).lean();
-    if (!user) throw new HttpError(404, "Student not found.");
-
-    const [enrollmentDocs, orders] = await Promise.all([
-      Enrollment.find({ user: id }).populate("course").sort({ createdAt: -1 }).lean(),
-      Order.find({ user: id }).sort({ createdAt: -1 }).limit(100).lean(),
+    if (!mongoose.isValidObjectId(id)) throw new HttpError(404, "Order not found.");
+    const order = await Order.findById(id).lean();
+    if (!order) throw new HttpError(404, "Order not found.");
+    const [course, settings] = await Promise.all([
+      Course.findById(order.course).lean(),
+      BillingSettings.findOne({ key: "billing" }).lean(),
     ]);
+    const gstRate = settings?.gstRate ?? 18;
 
-    const enrollments = enrollmentDocs
-      .map((doc) => {
-        const shaped = shapeEnrollment(doc as Record<string, unknown>);
-        if (!shaped) return null;
-        const course = doc.course as unknown as { curriculum?: { title: string; lessons: { id: string; title: string; duration: number }[] }[] };
-        const done = new Set(shaped.completedLessonIds);
-        return {
-          ...shaped,
-          // Lesson-by-lesson view for the admin.
-          sections: (course.curriculum ?? []).map((m) => ({
-            title: m.title,
-            lessons: m.lessons.map((l) => ({ id: l.id, title: l.title, duration: l.duration, done: done.has(l.id) })),
-          })),
-        };
-      })
-      .filter(Boolean);
-
-    const paid = orders.filter((o) => o.status === "paid");
     res.json({
-      user: {
-        id: String(user._id),
-        name: user.name,
-        username: user.username,
-        email: user.email,
-        role: user.role,
-        createdAt: (user.createdAt as Date | undefined)?.toISOString(),
+      order: {
+        id: String(order._id),
+        invoiceNumber: order.invoiceNumber || "",
+        status: order.status,
+        provider: order.provider,
+        providerPaymentId: order.providerPaymentId,
+        amount: order.amount,
+        listPrice: order.listPrice,
+        currency: order.currency,
+        gst: gstBreakdown(order.amount, gstRate),
+        createdAt: (order.createdAt as Date | undefined)?.toISOString(),
+        paidAt: order.paidAt ? new Date(order.paidAt).toISOString() : undefined,
+        buyer: { name: order.buyerName, email: order.buyerEmail, phone: order.buyerPhone },
+        course: course ? { title: course.title, slug: course.slug } : { title: order.courseTitle, slug: "" },
+        seller: {
+          companyName: settings?.companyName || "Churro Academy",
+          gstin: settings?.gstin || "",
+          address: settings?.address || "",
+          email: settings?.email || "",
+          phone: settings?.phone || "",
+        },
+        emailSentAt: order.emailSentAt ? new Date(order.emailSentAt).toISOString() : undefined,
+        emailError: order.emailError || "",
+        // What the enrollment email lists — lets the admin see exactly what a
+        // resend would go out with, including which lessons still lack a link.
+        emailSections: (course?.curriculum ?? []).map((section) => ({
+          title: section.title,
+          lessons: section.lessons.map((l) => ({ title: l.title, hasVideo: Boolean(l.videoUrl) })),
+        })),
       },
-      summary: {
-        coursesOwned: enrollments.length,
-        coursesCompleted: enrollments.filter((e) => e!.isComplete).length,
-        lessonsCompleted: enrollments.reduce((s, e) => s + e!.completedLessons, 0),
-        // From enrollments, so courses bought before orders existed still count.
-        totalSpent: enrollments.reduce((s, e) => s + e!.amountPaid, 0),
-        paidOrders: paid.length,
-        lastActiveAt: enrollments.map((e) => e!.lastOpenedAt).sort().at(-1),
-      },
-      enrollments,
-      orders: orders.map((o) => ({
-        id: String(o._id),
-        courseTitle: o.courseTitle,
-        amount: o.amount,
-        listPrice: o.listPrice,
-        status: o.status,
-        provider: o.provider,
-        providerPaymentId: o.providerPaymentId,
-        createdAt: (o.createdAt as Date | undefined)?.toISOString(),
-        paidAt: o.paidAt ? new Date(o.paidAt).toISOString() : undefined,
-      })),
     });
+  }),
+);
+
+/** Resends the enrollment email with whatever video links exist right now. */
+adminRouter.post(
+  "/orders/:id/resend-email",
+  asyncHandler(async (req, res) => {
+    const id = String(req.params.id);
+    if (!mongoose.isValidObjectId(id)) throw new HttpError(404, "Order not found.");
+    const order = await Order.findById(id);
+    if (!order) throw new HttpError(404, "Order not found.");
+    if (order.status !== "paid") throw new HttpError(409, "This order hasn't been paid, so there's nothing to send.");
+
+    const result = await dispatchOrderEmail(order);
+    if (!result.ok) throw new HttpError(502, `Email didn't send: ${result.error}`);
+    res.json({ ok: true });
   }),
 );

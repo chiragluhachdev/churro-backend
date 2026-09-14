@@ -4,9 +4,8 @@ export interface LessonInput {
   id?: string;
   title: string;
   duration?: number;
-  preview?: boolean;
+  /** Where the recording lives — admin-only, emailed to a buyer once paid. */
   videoUrl?: string;
-  description?: string;
 }
 
 export interface ModuleInput {
@@ -17,9 +16,11 @@ export interface ModuleInput {
 
 /**
  * Gives every section and lesson a stable id (keeping any the client sent) and
- * derives the lesson count. The count is the single figure progress is
- * measured against, so it must come from the curriculum, never from a field an
- * admin can type into.
+ * derives the lesson count for the course card / syllabus. There's no
+ * in-app player — this is a marketing syllabus, not something progress is
+ * tracked against — but stable ids still make reordering in the admin editor
+ * painless, and the video link on each lesson is what the enrollment email
+ * pulls from.
  */
 export function normalizeCurriculum(curriculum: ModuleInput[]) {
   const seen = new Set<string>();
@@ -37,40 +38,34 @@ export function normalizeCurriculum(curriculum: ModuleInput[]) {
       id: uniqueId(lesson.id),
       title: lesson.title.trim(),
       duration: Math.max(0, Math.round(Number(lesson.duration) || 0)),
-      preview: Boolean(lesson.preview),
       videoUrl: (lesson.videoUrl ?? "").trim(),
-      description: (lesson.description ?? "").trim(),
     })),
   }));
 
-  const lessonIds = normalized.flatMap((m) => m.lessons.map((l) => l.id));
+  const lessonCount = normalized.reduce((sum, m) => sum + m.lessons.length, 0);
   const totalMinutes = normalized.reduce(
     (sum, m) => sum + m.lessons.reduce((s, l) => s + l.duration, 0),
     0,
   );
-  return { curriculum: normalized, lessonCount: lessonIds.length, lessonIds, totalMinutes };
+  return { curriculum: normalized, lessonCount, totalMinutes };
 }
 
-/** All lesson ids of a stored course, in order. */
-export function lessonIdsOf(course: { curriculum?: { lessons?: { id?: string }[] }[] | null }): string[] {
-  return (course.curriculum ?? []).flatMap((m) => (m.lessons ?? []).map((l) => String(l.id)));
+/** Lesson count of a stored course's curriculum. */
+export function lessonCountOf(course: { curriculum?: { lessons?: unknown[] }[] | null }): number {
+  return (course.curriculum ?? []).reduce((sum, m) => sum + (m.lessons?.length ?? 0), 0);
 }
 
 /**
- * Removes paid video links from a course headed to someone who hasn't bought
- * it. Free-preview lessons keep theirs.
+ * Removes video links from a course headed to the public catalogue — they're
+ * for a paying buyer's inbox, not a visitor still deciding whether to buy.
  */
-export function stripPaidVideos<T extends Record<string, unknown>>(course: T): T {
-  const curriculum = (course.curriculum as ModuleInput[] | undefined) ?? [];
+export function stripLessonVideos<T extends Record<string, unknown>>(course: T): T {
+  const curriculum = (course.curriculum as { lessons?: LessonInput[] }[] | undefined) ?? [];
   return {
     ...course,
     curriculum: curriculum.map((m) => ({
       ...m,
-      lessons: (m.lessons ?? []).map((l) => ({
-        ...l,
-        videoUrl: l.preview ? l.videoUrl ?? "" : "",
-        hasVideo: Boolean(l.videoUrl),
-      })),
+      lessons: (m.lessons ?? []).map(({ videoUrl: _videoUrl, ...lesson }) => lesson),
     })),
   };
 }

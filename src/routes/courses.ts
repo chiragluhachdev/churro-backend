@@ -1,23 +1,22 @@
 import { Router } from "express";
 import { z } from "zod";
 
-import { lessonIdsOf, normalizeCurriculum, stripPaidVideos } from "../lib/curriculum.js";
+import { normalizeCurriculum, stripLessonVideos } from "../lib/curriculum.js";
 import { asyncHandler, HttpError, onlySentFields } from "../lib/http.js";
 import { authenticate, requireAdmin } from "../middleware/auth.js";
 import { Course } from "../models/Course.js";
-import { Enrollment } from "../models/Enrollment.js";
+import { Order } from "../models/Order.js";
 
 export const coursesRouter = Router();
 
 function withId(doc: Record<string, unknown>) {
   const { _id, __v, ...rest } = doc as Record<string, unknown> & { _id: unknown };
   void __v;
-  const lessons = lessonIdsOf(rest as { curriculum?: { lessons?: { id?: string }[] }[] }).length;
-  return { ...rest, id: String(_id), lessons };
+  return { ...rest, id: String(_id) };
 }
 
-/** What the public may see: no paid video links, lesson count from the curriculum. */
-const publicCourse = (doc: Record<string, unknown>) => stripPaidVideos(withId(doc));
+/** What the catalogue pages may see: no video links — those are for a paying buyer's inbox. */
+const publicCourse = (doc: Record<string, unknown>) => stripLessonVideos(withId(doc));
 
 /** Public catalogue. `?featured=true` narrows to the home-page picks. */
 coursesRouter.get(
@@ -49,13 +48,11 @@ const lessonSchema = z.object({
   id: z.string().optional(),
   title: z.string().trim().min(1, "Every lesson needs a title."),
   duration: z.coerce.number().min(0).default(0),
-  preview: z.coerce.boolean().default(false),
   videoUrl: z
     .string()
     .trim()
     .default("")
     .refine((v) => v === "" || /^https?:\/\//i.test(v), "Lesson video must be a full https:// link."),
-  description: z.string().default(""),
 });
 
 const moduleSchema = z.object({
@@ -156,7 +153,9 @@ coursesRouter.patch(
       throw new HttpError(409, "A course with that slug already exists.");
     }
     const willPublish = sent.published ?? existing.published;
-    const lessonCount = (data.lessons as number | undefined) ?? lessonIdsOf(existing).length;
+    const lessonCount =
+      (data.lessons as number | undefined) ??
+      (existing.curriculum ?? []).reduce((n, m) => n + (m.lessons?.length ?? 0), 0);
     if (willPublish && lessonCount === 0) throw new HttpError(400, "Add at least one lesson before publishing.");
 
     const course = await Course.findByIdAndUpdate(req.params.id, data, { new: true });
@@ -169,12 +168,12 @@ coursesRouter.delete(
   authenticate,
   requireAdmin,
   asyncHandler(async (req, res) => {
-    // Paying students must never lose a course they bought.
-    const owners = await Enrollment.countDocuments({ course: req.params.id });
-    if (owners > 0) {
+    // Paying customers must never lose a course that's on their invoice.
+    const sold = await Order.countDocuments({ course: req.params.id, status: "paid" });
+    if (sold > 0) {
       throw new HttpError(
         409,
-        `${owners} student${owners === 1 ? " owns" : "s own"} this course, so it can't be deleted. Unpublish it to stop selling it.`,
+        `${sold} paid order${sold === 1 ? "" : "s"} exist for this course, so it can't be deleted. Unpublish it to stop selling it.`,
       );
     }
     const course = await Course.findByIdAndDelete(req.params.id);

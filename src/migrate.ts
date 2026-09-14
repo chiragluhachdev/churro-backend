@@ -1,27 +1,30 @@
 /**
- * One-off, idempotent data migration for the lesson/progress upgrade.
+ * One-off, idempotent data migrations. Safe to run any number of times, on
+ * any environment — each step checks what it needs before touching anything.
  *
  *   npm run migrate
- *
- * Safe to run any number of times, on any environment:
- *  1. Every section and lesson gets a stable id (existing ids are kept), and the
- *     course's lesson count is set from its real curriculum.
- *  2. Old numeric progress ("7 lessons done") becomes the ids of the first N
- *     lessons, so students keep their progress.
  */
 import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import mongoose from "mongoose";
 
-import { lessonIdsOf } from "./lib/curriculum.js";
 import { connectDB } from "./lib/db.js";
+import { BillingSettings } from "./models/BillingSettings.js";
 import { Course } from "./models/Course.js";
-import { Enrollment } from "./models/Enrollment.js";
-import { User } from "./models/User.js";
 
 /** Readable and deterministic, so a fresh seed produces the same ids. */
 export const lessonKey = (slug: string, s: number, l: number) => `${slug}-s${s + 1}-l${l + 1}`;
 export const sectionKey = (slug: string, s: number) => `${slug}-s${s + 1}`;
+
+const migrations = () => mongoose.connection.collection<{ _id: string; appliedAt: Date }>("migrations");
+async function once(id: string, run: () => Promise<string>) {
+  if (await migrations().findOne({ _id: id })) {
+    console.log(`[migrate] ${id}: already applied`);
+    return;
+  }
+  console.log(`[migrate] ${await run()}`);
+  await migrations().insertOne({ _id: id, appliedAt: new Date() });
+}
 
 async function main() {
   await connectDB();
@@ -35,43 +38,13 @@ async function main() {
         if (!lesson.id) { lesson.id = lessonKey(course.slug, s, l); changed = true; }
       });
     });
-    const count = lessonIdsOf(course);
-    if (course.lessons !== count.length) { course.lessons = count.length; changed = true; }
+    const count = course.curriculum.reduce((n, m) => n + m.lessons.length, 0);
+    if (course.lessons !== count) { course.lessons = count; changed = true; }
     if (changed) { course.markModified("curriculum"); await course.save(); coursesChanged++; }
   }
   console.log(`[migrate] courses updated: ${coursesChanged}`);
 
-  let progressMigrated = 0;
-  const legacy = await Enrollment.find({
-    completedLessons: { $gt: 0 },
-    $or: [{ completedLessonIds: { $exists: false } }, { completedLessonIds: { $size: 0 } }],
-  }).populate("course");
-  for (const enrollment of legacy) {
-    const course = enrollment.course as unknown as { curriculum?: { lessons?: { id?: string }[] }[] } | null;
-    if (!course) continue;
-    const ids = lessonIdsOf(course);
-    enrollment.completedLessonIds = ids.slice(0, Math.min(enrollment.completedLessons, ids.length));
-    enrollment.completedLessons = enrollment.completedLessonIds.length;
-    if (ids.length > 0 && enrollment.completedLessons >= ids.length) enrollment.completedAt ??= new Date();
-    else enrollment.completedAt = undefined;
-    await enrollment.save();
-    progressMigrated++;
-  }
-  console.log(`[migrate] enrollments converted to per-lesson progress: ${progressMigrated}`);
-
-  // 3. Admin accounts can no longer buy courses. Remove enrollments an admin
-  //    created before that rule existed (they were test clicks, not sales).
-  const adminIds = (await User.find({ role: "admin" }).select("_id email")).map((u) => u._id);
-  const adminOwned = await Enrollment.find({ user: { $in: adminIds } }).populate("user", "email").populate("course", "title");
-  for (const e of adminOwned) {
-    const who = (e.user as unknown as { email?: string })?.email;
-    const what = (e.course as unknown as { title?: string })?.title;
-    console.log(`[migrate]   removing admin-owned enrollment: ${who} -> ${what} (₹${e.amountPaid})`);
-  }
-  const removed = await Enrollment.deleteMany({ user: { $in: adminIds } });
-  console.log(`[migrate] admin-owned enrollments removed: ${removed.deletedCount}`);
-
-  // 4. Spelling: the seeded FAQ said "enrol". Only touches that exact, untouched text.
+  // Spelling: the seeded FAQ said "enrol". Only touches that exact, untouched text.
   const OLD = "Lifetime access. Once you enrol, the course is yours to revisit whenever you like — no expiry.";
   const NEW = "Lifetime access. Once you enroll, the course is yours to revisit whenever you like — no expiry.";
   const spelling = await Course.updateMany(
@@ -81,15 +54,7 @@ async function main() {
   );
   console.log(`[migrate] FAQ spelling fixed on courses: ${spelling.modifiedCount}`);
 
-  // 5. FAQs and requirements existed in the original site content but the
-  //    database had nowhere to keep them. Copy them in once, only into courses
-  //    whose lists are still empty. Recorded so a later run never re-adds
-  //    something the admin deliberately removed.
-  const migrations = mongoose.connection.collection<{ _id: string; appliedAt: Date }>("migrations");
-  const BACKFILL = "2026-09-backfill-faqs-requirements";
-  if (await migrations.findOne({ _id: BACKFILL })) {
-    console.log("[migrate] FAQ/requirements backfill: already applied");
-  } else {
+  await once("2026-09-backfill-faqs-requirements", async () => {
     const seedPath = fileURLToPath(new URL("./data/courses.seed.json", import.meta.url));
     const seed = JSON.parse(await readFile(seedPath, "utf8")) as {
       slug: string;
@@ -111,9 +76,53 @@ async function main() {
       }
       if (changed) { await course.save(); filled++; }
     }
-    await migrations.insertOne({ _id: BACKFILL, appliedAt: new Date() });
-    console.log(`[migrate] FAQ/requirements backfilled on courses: ${filled}`);
-  }
+    return `FAQ/requirements backfilled on courses: ${filled}`;
+  });
+
+  // 2026-09: the student dashboard and video player were removed — the chef
+  // now sends course material by hand over WhatsApp, and Order is the sole
+  // record of a purchase. Any pre-existing Enrollment data was folded into
+  // Order (backfilling one where a purchase predated Order entirely) and the
+  // collection dropped as a one-off, run against the dev database directly
+  // while both models still existed; nothing left for a fresh environment to
+  // do here.
+
+  await once("2026-09-strip-lesson-video-fields", async () => {
+    // The curriculum editor no longer has video/preview/notes — those old
+    // fields are just dead weight now (Mongoose reads .lean() straight off
+    // the stored document, schema or no), so rebuild every lesson down to
+    // just {id, title, duration}.
+    type LegacyLesson = { id: string; title: string; duration: number };
+    const docs = await Course.find({}).select("curriculum").lean();
+    let touched = 0;
+    for (const doc of docs) {
+      const curriculum = (doc.curriculum ?? []) as { id: string; title: string; lessons: LegacyLesson[] }[];
+      const clean = curriculum.map((section) => ({
+        id: section.id,
+        title: section.title,
+        lessons: section.lessons.map((l) => ({ id: l.id, title: l.title, duration: l.duration })),
+      }));
+      await Course.updateOne({ _id: doc._id }, { $set: { curriculum: clean } });
+      touched++;
+    }
+    return `legacy lesson fields stripped on courses: ${touched}`;
+  });
+
+  await once("2026-09-seed-billing-settings", async () => {
+    const result = await BillingSettings.updateOne(
+      { key: "billing" },
+      {
+        $setOnInsert: {
+          key: "billing",
+          companyName: "Churro Academy",
+          gstin: "06CXJPK4427M1Z3",
+          gstRate: 18,
+        },
+      },
+      { upsert: true },
+    );
+    return `billing settings ${result.upsertedCount ? "created" : "already present"}`;
+  });
 
   await mongoose.disconnect();
   console.log("[migrate] done");

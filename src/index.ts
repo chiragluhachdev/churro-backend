@@ -3,6 +3,7 @@ import express from "express";
 import type { NextFunction, Request, Response } from "express";
 
 import { connectDB } from "./lib/db.js";
+import { activeEmailProvider } from "./lib/email.js";
 import { env } from "./lib/env.js";
 import { HttpError } from "./lib/http.js";
 import { adminRouter } from "./routes/admin.js";
@@ -10,8 +11,6 @@ import { authRouter } from "./routes/auth.js";
 import { chatRouter } from "./routes/chat.js";
 import { adminContentRouter, contentRouter } from "./routes/content.js";
 import { coursesRouter } from "./routes/courses.js";
-import { enrollmentsRouter } from "./routes/enrollments.js";
-import { learnRouter } from "./routes/learn.js";
 import { ordersRouter } from "./routes/orders.js";
 import { uploadRouter } from "./routes/upload.js";
 
@@ -28,15 +27,15 @@ app.get("/health", (_req, res) => {
     chatModel: process.env.GROQ_API_KEY
       ? (process.env.GROQ_MODEL ?? "openai/gpt-oss-20b")
       : null,
+    // "dummy" just logs the email instead of sending it — set BREVO_API_KEY to go live.
+    emailProvider: activeEmailProvider(),
   });
 });
 
 app.use("/api/auth", authRouter);
 app.use("/api/chat", chatRouter);
 app.use("/api/courses", coursesRouter);
-app.use("/api/enrollments", enrollmentsRouter);
 app.use("/api/orders", ordersRouter);
-app.use("/api/learn", learnRouter);
 app.use("/api/content", contentRouter);
 app.use("/api/admin/content", adminContentRouter);
 app.use("/api/admin", adminRouter);

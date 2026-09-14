@@ -39,27 +39,23 @@ uploadRouter.post(
 );
 
 /**
- * Signs a direct browser-to-Cloudinary upload. Lesson videos run to hundreds of
- * megabytes; streaming them through Next and Express would hit request size
- * limits and hold whole files in memory. The browser uploads straight to
- * Cloudinary with this short-lived signature instead. The API secret never
- * leaves the server.
+ * Signs a direct browser-to-Cloudinary upload for course images (thumbnails,
+ * hero images). The API secret never leaves the server.
  */
 uploadRouter.post(
   "/signature",
   authenticate,
   requireAdmin,
-  asyncHandler(async (req, res) => {
-    const kind = req.body?.kind === "video" ? "video" : "image";
+  asyncHandler(async (_req, res) => {
     const { cloud_name, api_key, api_secret } = cloudinary.config();
     if (!cloud_name || !api_key || !api_secret) throw new HttpError(503, "Uploads aren't configured on the server.");
 
     const timestamp = Math.round(Date.now() / 1000);
-    const folder = kind === "video" ? "churro_academy/lessons" : "churro_academy";
+    const folder = "churro_academy";
     const signature = cloudinary.utils.api_sign_request({ timestamp, folder }, api_secret);
 
     res.json({
-      uploadUrl: `https://api.cloudinary.com/v1_1/${cloud_name}/${kind}/upload`,
+      uploadUrl: `https://api.cloudinary.com/v1_1/${cloud_name}/image/upload`,
       apiKey: api_key,
       timestamp,
       folder,

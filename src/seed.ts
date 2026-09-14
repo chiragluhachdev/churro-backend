@@ -1,8 +1,8 @@
 /**
- * Seeds MongoDB with the starter catalogue and an admin account.
+ * Seeds MongoDB with the starter catalogue and the admin account.
  *
- *   npm run seed             # upsert courses by slug, leave users alone
- *   npm run seed -- --fresh  # wipe courses + enrollments first
+ *   npm run seed             # upsert courses by slug, leave the admin alone
+ *   npm run seed -- --fresh  # wipe courses + site content first
  *
  * Safe to re-run.
  */
@@ -12,8 +12,8 @@ import bcrypt from "bcryptjs";
 import mongoose from "mongoose";
 
 import { connectDB } from "./lib/db.js";
+import { BillingSettings } from "./models/BillingSettings.js";
 import { Course } from "./models/Course.js";
-import { Enrollment } from "./models/Enrollment.js";
 import { ChefProfile } from "./models/ChefProfile.js";
 import { Post } from "./models/Post.js";
 import { Testimonial } from "./models/Testimonial.js";
@@ -33,12 +33,11 @@ async function main() {
   if (fresh) {
     await Promise.all([
       Course.deleteMany({}),
-      Enrollment.deleteMany({}),
       Testimonial.deleteMany({}),
       Post.deleteMany({}),
       ChefProfile.deleteMany({}),
     ]);
-    console.log("[seed] cleared courses, enrollments and site content");
+    console.log("[seed] cleared courses and site content");
   }
 
   const seedPath = fileURLToPath(new URL("./data/courses.seed.json", import.meta.url));
@@ -73,28 +72,6 @@ async function main() {
     console.log(`[seed] created admin ${ADMIN.email} / ${ADMIN.password}`);
   }
 
-  const STUDENT = {
-    name: "Alex Student",
-    username: "alex",
-    email: "alex@example.com",
-    password: "password123",
-  };
-
-  const existingStudent = await User.findOne({ email: STUDENT.email });
-  if (!existingStudent) {
-    await User.create({
-      name: STUDENT.name,
-      username: STUDENT.username,
-      email: STUDENT.email,
-      passwordHash: await bcrypt.hash(STUDENT.password, 12),
-      role: "student",
-    });
-    console.log(`[seed] created student ${STUDENT.email} / ${STUDENT.password}`);
-  } else {
-    console.log(`[seed] student already present (${STUDENT.email})`);
-  }
-
-
   // ---- Site content -------------------------------------------------------
   // $setOnInsert only: once content exists, re-running the seed must never
   // overwrite what an admin has since edited.
@@ -124,6 +101,20 @@ async function main() {
     { upsert: true },
   );
   console.log(`[seed] chef profile ${chefResult.upsertedCount ? "created" : "already present — left untouched"}`);
+
+  const billingResult = await BillingSettings.updateOne(
+    { key: "billing" },
+    {
+      $setOnInsert: {
+        key: "billing",
+        companyName: "Churro Academy",
+        gstin: "06CXJPK4427M1Z3",
+        gstRate: 18,
+      },
+    },
+    { upsert: true },
+  );
+  console.log(`[seed] billing settings ${billingResult.upsertedCount ? "created" : "already present — left untouched"}`);
 
   await mongoose.disconnect();
   console.log("[seed] done");

@@ -6,17 +6,24 @@ import type { InferSchemaType, Model } from "mongoose";
 const { Schema, model, models } = mongoose;
 
 /**
- * A purchase attempt. The amount is fixed server-side when the order is
- * created and is the only figure ever charged — nothing the browser sends can
- * change it. An order moves created -> paid exactly once.
+ * A purchase — the single record of who bought what and how much they paid.
+ * Checkout is guest-only (course materials are sent by hand over WhatsApp
+ * afterward, not unlocked in-app), so the buyer's own details are captured
+ * directly on the order rather than through an account. The amount is fixed
+ * server-side when the order is created and is the only figure ever charged —
+ * nothing the browser sends can change it. An order moves created -> paid
+ * exactly once.
  */
 const orderSchema = new Schema(
   {
-    user: { type: Schema.Types.ObjectId, ref: "User", required: true, index: true },
-    course: { type: Schema.Types.ObjectId, ref: "Course", required: true },
+    buyerName: { type: String, required: true, trim: true },
+    buyerEmail: { type: String, required: true, trim: true, lowercase: true, index: true },
+    /** WhatsApp number the chef sends the course materials to. */
+    buyerPhone: { type: String, required: true, trim: true },
+    course: { type: Schema.Types.ObjectId, ref: "Course", required: true, index: true },
     /** Snapshot for receipts, even if the course is later renamed. */
     courseTitle: { type: String, required: true },
-    /** Whole rupees, locked at creation. */
+    /** Whole rupees, inclusive of GST, locked at creation. */
     amount: { type: Number, required: true, min: 0 },
     /** What the list price was, to show the saving. */
     listPrice: { type: Number, required: true, min: 0 },
@@ -35,6 +42,12 @@ const orderSchema = new Schema(
     expiresAt: { type: Date, required: true },
     paidAt: { type: Date },
     failureReason: { type: String, default: "" },
+    /** Assigned once, the moment the order is marked paid. */
+    invoiceNumber: { type: String, default: "" },
+    /** The "you're enrolled" email with lesson links — set once it's actually sent. */
+    emailSentAt: { type: Date },
+    /** Last delivery failure, if any, so the admin can see why and retry. */
+    emailError: { type: String, default: "" },
   },
   { timestamps: true },
 );

@@ -21,8 +21,8 @@ const chatSchema = z.object({
 /** Facts the bot is allowed to state. Everything else it defers to WhatsApp. */
 const POLICIES = [
   { keys: ["refund", "money back", "cancel"], answer: "Courses come with a 7-day refund window — if it isn't for you, email hello@churroacademy.com within a week of buying and we'll refund in full." },
-  { keys: ["access", "expire", "how long", "lifetime"], answer: "Access is for life. Buy a course once and it stays in your dashboard permanently, including any future updates to it." },
-  { keys: ["certificate", "certification"], answer: "Yes — finish every lesson in a course and a certificate is issued automatically. You'll find it under Certificates in your dashboard." },
+  { keys: ["access", "expire", "how long", "lifetime"], answer: "Access is for life. Once you pay, your lesson videos and course material are emailed to you straight away, with a WhatsApp backup — no subscription, nothing expires." },
+  { keys: ["video", "videos", "watch", "where do i", "how do i access", "how do i get"], answer: "As soon as payment goes through, we email your lesson videos and material to you, and WhatsApp them too as a backup. No app or login needed." },
   { keys: ["beginner", "new to baking", "never baked", "experience"], answer: "Plenty of our courses are built for complete beginners — Cookie Craft, Churros From Scratch and Chocolate Cake Mastery all start from scratch and assume no experience." },
   { keys: ["equipment", "tools", "oven", "need to buy"], answer: "Nothing specialist. A home oven, basic bowls and a hand mixer will carry you through most courses. Anything extra is listed on the course page before you buy." },
   { keys: ["pay", "payment", "card", "upi", "razorpay"], answer: "You can pay by card or UPI at checkout. Payment is processed securely and your course unlocks straight away." },
@@ -112,7 +112,7 @@ async function localAnswer(question: string): Promise<string> {
     return mentions(q, words);
   });
   if (hit) {
-    return `${hit.title} is ₹${hit.discountPrice ?? hit.price} — ${hit.lessons} lessons, ${hit.duration}, pitched at ${String(hit.level).toLowerCase()} level. You get lifetime access and a certificate at the end. Want the link?`;
+    return `${hit.title} is ₹${hit.discountPrice ?? hit.price} — ${hit.lessons} lessons, ${hit.duration}, pitched at ${String(hit.level).toLowerCase()} level. Videos and material land in your inbox right after payment. Want the link?`;
   }
 
   if (mentions(q, ["price", "prices", "cost", "costs", "how much", "fee", "fees", "charges"])) {
@@ -151,8 +151,8 @@ Courses currently on sale:
 ${await courseContext()}
 
 Policies:
-- Lifetime access to any course you buy. No subscription.
-- Certificate issued automatically when every lesson is finished.
+- Lifetime access to any course you buy. No subscription, no app or login.
+- Right after payment, lesson videos and course material are emailed to the buyer, and sent on WhatsApp too as a backup.
 - 7-day refund window.
 - Every course is taught by Chef Simone Kathuria.
 - Prices are in Indian rupees.

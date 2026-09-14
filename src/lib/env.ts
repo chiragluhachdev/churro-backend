@@ -12,4 +12,7 @@ export const env = {
   corsOrigin: (process.env.CORS_ORIGIN ?? "http://localhost:3000")
     .split(",")
     .map((origin) => origin.trim()),
+  // Where links in outbound emails point back to. CORS_ORIGIN can't stand in
+  // for this — it's allowed to be "*" — so this is its own setting.
+  appUrl: process.env.APP_URL ?? "http://localhost:3000",
 };

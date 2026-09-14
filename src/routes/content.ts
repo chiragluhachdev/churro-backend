@@ -3,6 +3,7 @@ import { z } from "zod";
 
 import { asyncHandler, HttpError, onlySentFields } from "../lib/http.js";
 import { authenticate, requireAdmin } from "../middleware/auth.js";
+import { BillingSettings } from "../models/BillingSettings.js";
 import { ChefProfile } from "../models/ChefProfile.js";
 import { Post } from "../models/Post.js";
 import { Testimonial } from "../models/Testimonial.js";
@@ -57,6 +58,24 @@ contentRouter.get(
     const doc = await ChefProfile.findOne({ key: "chef" }).lean();
     if (!doc) throw new HttpError(404, "Chef profile not set up.");
     res.json({ chef: clean(doc as Record<string, unknown>) });
+  }),
+);
+
+/** Just the seller details an invoice needs to show — not a secret. */
+contentRouter.get(
+  "/billing",
+  asyncHandler(async (_req, res) => {
+    const doc = await BillingSettings.findOne({ key: "billing" }).lean();
+    res.json({
+      billing: {
+        companyName: doc?.companyName || "Churro Academy",
+        gstin: doc?.gstin || "",
+        address: doc?.address || "",
+        email: doc?.email || "",
+        phone: doc?.phone || "",
+        gstRate: doc?.gstRate ?? 18,
+      },
+    });
   }),
 );
 
@@ -220,5 +239,30 @@ adminContentRouter.put(
       { new: true, upsert: true },
     );
     res.json({ chef: clean(doc!.toObject()) });
+  }),
+);
+
+/* ---- billing settings ---- */
+
+const billingSchema = z.object({
+  companyName: z.string().trim().min(1, "Company name is required."),
+  gstin: z.string().trim().default(""),
+  address: z.string().trim().default(""),
+  email: z.string().trim().default(""),
+  phone: z.string().trim().default(""),
+  gstRate: z.coerce.number().min(0).max(100).default(18),
+});
+
+adminContentRouter.put(
+  "/billing",
+  asyncHandler(async (req, res) => {
+    const parsed = billingSchema.safeParse(req.body);
+    if (!parsed.success) throw new HttpError(400, parsed.error.issues[0]?.message ?? "Invalid billing details.");
+    const doc = await BillingSettings.findOneAndUpdate(
+      { key: "billing" },
+      { ...parsed.data, key: "billing" },
+      { new: true, upsert: true },
+    );
+    res.json({ billing: clean(doc!.toObject()) });
   }),
 );

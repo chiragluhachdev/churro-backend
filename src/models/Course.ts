@@ -7,23 +7,17 @@ const { Schema, model, models } = mongoose;
 
 const lessonSchema = new Schema(
   {
-    /**
-     * Stable id. Progress is stored as a list of these, so a lesson keeps its
-     * completion state when the admin reorders or renames it.
-     */
+    /** Stable id, kept across admin edits so reordering doesn't churn it. */
     id: { type: String, required: true },
     title: { type: String, required: true },
-    /** Minutes. */
+    /** Minutes — shown in the syllabus on the course page. */
     duration: { type: Number, default: 0, min: 0 },
-    /** Free preview: its video is visible to anyone on the course page. */
-    preview: { type: Boolean, default: false },
     /**
-     * YouTube, Vimeo or a direct video file (e.g. a Cloudinary upload).
-     * Never sent to the public unless `preview` is true.
+     * Where the recording actually lives (YouTube, Drive, Vimeo…). Admin-only —
+     * never sent to the public catalogue, only emailed to a buyer once they've
+     * paid for this course.
      */
     videoUrl: { type: String, default: "" },
-    /** Notes shown under the player. */
-    description: { type: String, default: "" },
   },
   { _id: false },
 );
