@@ -7,13 +7,6 @@ export function activeEmailProvider(): EmailProvider {
   return process.env.BREVO_API_KEY ? "brevo" : "dummy";
 }
 
-/** Parses "Name <email@x.com>" (or a bare email) into Brevo's {name, email} shape. */
-function parseSender(raw: string): { name: string; email: string } {
-  const match = raw.match(/^\s*(.*?)\s*<(.+)>\s*$/);
-  if (match) return { name: match[1] || "Churro Academy", email: match[2].trim() };
-  return { name: "Churro Academy", email: raw.trim() };
-}
-
 interface CourseAccessEmailInput {
   to: string;
   buyerName: string;
@@ -136,7 +129,10 @@ export async function sendCourseAccessEmail(
   }
 
   try {
-    const sender = parseSender(process.env.EMAIL_FROM || "Churro Academy <no-reply@churroacademyglobal.com>");
+    const sender = {
+      name: process.env.BREVO_SENDER_NAME || "Churro Academy",
+      email: process.env.BREVO_SENDER_EMAIL || "",
+    };
     const response = await fetch("https://api.brevo.com/v3/smtp/email", {
       method: "POST",
       headers: {
@@ -155,8 +151,9 @@ export async function sendCourseAccessEmail(
     });
     if (!response.ok) {
       const body = await response.text().catch(() => "");
-      // Almost always means EMAIL_FROM isn't a sender verified in the Brevo
-      // account yet — Brevo has no sandbox sender the way some providers do.
+      // Almost always means BREVO_SENDER_EMAIL isn't verified in the Brevo
+      // account yet, or the account's IP allowlist is blocking this server —
+      // Brevo has no sandbox sender the way some providers do.
       return { ok: false, error: `brevo ${response.status}: ${body.slice(0, 300)}` };
     }
     return { ok: true };
