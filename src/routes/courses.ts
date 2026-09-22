@@ -115,9 +115,6 @@ coursesRouter.post(
       throw new HttpError(409, "A course with that slug already exists.");
     }
     const data = prepare(parsed.data);
-    if (data.published && !(data.lessons as number)) {
-      throw new HttpError(400, "Add at least one lesson before publishing.");
-    }
     const course = await Course.create({
       ...data,
       instructor: { id: "chef-simone", name: "Chef Simone Kathuria", title: "Founder & Head Pastry Chef", avatar: "" },
@@ -153,11 +150,6 @@ coursesRouter.patch(
     if (sent.slug && sent.slug !== existing.slug && (await Course.exists({ slug: sent.slug }))) {
       throw new HttpError(409, "A course with that slug already exists.");
     }
-    const willPublish = sent.published ?? existing.published;
-    const lessonCount =
-      (data.lessons as number | undefined) ??
-      (existing.curriculum ?? []).reduce((n, m) => n + (m.lessons?.length ?? 0), 0);
-    if (willPublish && lessonCount === 0) throw new HttpError(400, "Add at least one lesson before publishing.");
 
     const course = await Course.findByIdAndUpdate(req.params.id, data, { new: true });
     res.json({ course: withId(course!.toObject()) });
