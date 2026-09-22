@@ -13,10 +13,11 @@ interface CourseAccessEmailInput {
   courseTitle: string;
   shortDescription: string;
   invoiceNumber: string;
-  invoiceUrl: string;
-  /** Only lessons a link has been added to show one — everything else reads "coming soon". */
+  /** Only lessons a link has been added to show one — everything else reads "coming soon", since the admin adds these after the sale. */
   sections: { title: string; lessons: { title: string; videoUrl?: string }[] }[];
   seller: { companyName: string; email: string; phone: string };
+  /** The tax invoice as a real file, not a link — attached directly to the email. */
+  invoicePdf?: { filename: string; content: Buffer };
 }
 
 function escapeHtml(value: string): string {
@@ -24,7 +25,7 @@ function escapeHtml(value: string): string {
 }
 
 function buildEmail(input: CourseAccessEmailInput): { subject: string; html: string; text: string } {
-  const { buyerName, courseTitle, shortDescription, invoiceNumber, invoiceUrl, sections, seller } = input;
+  const { buyerName, courseTitle, shortDescription, invoiceNumber, sections, seller } = input;
   const firstName = buyerName.trim().split(/\s+/)[0] || "there";
   const subject = `You're enrolled — ${courseTitle}`;
   const contact = [seller.email, seller.phone].filter(Boolean).join(" · ") || "us";
@@ -80,10 +81,7 @@ function buildEmail(input: CourseAccessEmailInput): { subject: string; html: str
             ${lessonRowsHtml}
           </table>
           <p style="margin:22px 0 0;color:#6F6A60;font-size:13px;line-height:1.6;">
-            We'll also send these on WhatsApp as a backup. Save this email — you can always find your links here.
-          </p>
-          <p style="margin:18px 0 0;">
-            <a href="${escapeHtml(invoiceUrl)}" style="color:#294B32;font-size:14px;font-weight:600;text-decoration:none;">View your invoice (${escapeHtml(invoiceNumber)}) &rarr;</a>
+            Your tax invoice${invoiceNumber ? ` (${escapeHtml(invoiceNumber)})` : ""} is attached to this email as a PDF.
           </p>
         </td></tr>
         <tr><td style="background:#FFFFFF;border-radius:0 0 16px 16px;padding:18px 28px;border-top:1px solid #E7DFD1;">
@@ -103,9 +101,7 @@ Your lesson videos:
 
 ${lessonRowsText}
 
-We'll also send these on WhatsApp as a backup. Save this email — you can always find your links here.
-
-Invoice ${invoiceNumber}: ${invoiceUrl}
+Your tax invoice${invoiceNumber ? ` (${invoiceNumber})` : ""} is attached to this email as a PDF.
 
 Questions? Reach us at ${contact}.`;
 
@@ -124,7 +120,11 @@ export async function sendCourseAccessEmail(
   const provider = activeEmailProvider();
 
   if (provider === "dummy") {
-    console.log(`[email:dummy] Would send "${subject}" to ${input.to}. Set BREVO_API_KEY to actually send.`);
+    console.log(
+      `[email:dummy] Would send "${subject}" to ${input.to}` +
+        (input.invoicePdf ? ` with ${input.invoicePdf.filename} attached` : "") +
+        `. Set BREVO_API_KEY to actually send.`,
+    );
     return { ok: true };
   }
 
@@ -146,6 +146,9 @@ export async function sendCourseAccessEmail(
         subject,
         htmlContent: html,
         textContent: text,
+        ...(input.invoicePdf && {
+          attachment: [{ name: input.invoicePdf.filename, content: input.invoicePdf.content.toString("base64") }],
+        }),
       }),
       signal: AbortSignal.timeout(15_000),
     });

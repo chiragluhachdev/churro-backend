@@ -14,10 +14,17 @@ import { adminContentRouter, contentRouter } from "./routes/content.js";
 import { coursesRouter } from "./routes/courses.js";
 import { ordersRouter } from "./routes/orders.js";
 import { uploadRouter } from "./routes/upload.js";
+import { webhooksRouter } from "./routes/webhooks.js";
 
 const app = express();
 
 app.use(cors({ origin: env.corsOrigin, credentials: true }));
+
+// Mounted before express.json(): this route parses its own body as a raw
+// Buffer so it can verify Razorpay's signature against the exact bytes
+// sent, not a re-serialized copy. Every other route below still gets JSON.
+app.use("/api/webhooks", webhooksRouter);
+
 app.use(express.json({ limit: "1mb" }));
 
 app.get("/health", (_req, res) => {

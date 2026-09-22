@@ -19,6 +19,7 @@
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^9.9.4",
     "multer": "^2.2.0",
+    "pdfkit": "^0.20.2",
     "zod": "^4.4.3"
   },
   "devDependencies": {
@@ -28,6 +29,7 @@
     "@types/jsonwebtoken": "^9.0.10",
     "@types/multer": "^2.2.0",
     "@types/node": "^26.3.0",
+    "@types/pdfkit": "^0.17.6",
     "tsx": "^4.23.12",
     "typescript": "^7.0.2"
   }
