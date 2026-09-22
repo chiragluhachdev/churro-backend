@@ -4,8 +4,6 @@ export interface LessonInput {
   id?: string;
   title: string;
   duration?: number;
-  /** Where the recording lives — admin-only, emailed to a buyer once paid. */
-  videoUrl?: string;
 }
 
 export interface ModuleInput {
@@ -19,8 +17,7 @@ export interface ModuleInput {
  * derives the lesson count for the course card / syllabus. There's no
  * in-app player — this is a marketing syllabus, not something progress is
  * tracked against — but stable ids still make reordering in the admin editor
- * painless, and the video link on each lesson is what the enrollment email
- * pulls from.
+ * painless.
  */
 export function normalizeCurriculum(curriculum: ModuleInput[]) {
   const seen = new Set<string>();
@@ -38,7 +35,6 @@ export function normalizeCurriculum(curriculum: ModuleInput[]) {
       id: uniqueId(lesson.id),
       title: lesson.title.trim(),
       duration: Math.max(0, Math.round(Number(lesson.duration) || 0)),
-      videoUrl: (lesson.videoUrl ?? "").trim(),
     })),
   }));
 
@@ -56,16 +52,11 @@ export function lessonCountOf(course: { curriculum?: { lessons?: unknown[] }[] |
 }
 
 /**
- * Removes video links from a course headed to the public catalogue — they're
- * for a paying buyer's inbox, not a visitor still deciding whether to buy.
+ * Removes the Drive link/password from a course headed to the public
+ * catalogue — they're for a paying buyer's inbox, not a visitor still
+ * deciding whether to buy.
  */
-export function stripLessonVideos<T extends Record<string, unknown>>(course: T): T {
-  const curriculum = (course.curriculum as { lessons?: LessonInput[] }[] | undefined) ?? [];
-  return {
-    ...course,
-    curriculum: curriculum.map((m) => ({
-      ...m,
-      lessons: (m.lessons ?? []).map(({ videoUrl: _videoUrl, ...lesson }) => lesson),
-    })),
-  };
+export function stripCourseSecrets<T extends Record<string, unknown>>(course: T): T {
+  const { driveLink: _driveLink, drivePassword: _drivePassword, ...rest } = course;
+  return rest as T;
 }

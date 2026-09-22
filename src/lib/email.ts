@@ -1,5 +1,3 @@
-import { env } from "./env.js";
-
 export type EmailProvider = "dummy" | "brevo";
 
 /** Same convention as the chat widget's GROQ_API_KEY: present the key, get the real thing. */
@@ -13,8 +11,9 @@ interface CourseAccessEmailInput {
   courseTitle: string;
   shortDescription: string;
   invoiceNumber: string;
-  /** Only lessons a link has been added to show one — everything else reads "coming soon", since the admin adds these after the sale. */
-  sections: { title: string; lessons: { title: string; videoUrl?: string }[] }[];
+  /** Empty until the admin adds one — the email then says the videos are on their way. */
+  driveLink: string;
+  drivePassword: string;
   seller: { companyName: string; email: string; phone: string };
   /** The tax invoice as a real file, not a link — attached directly to the email. */
   invoicePdf?: { filename: string; content: Buffer };
@@ -25,38 +24,29 @@ function escapeHtml(value: string): string {
 }
 
 function buildEmail(input: CourseAccessEmailInput): { subject: string; html: string; text: string } {
-  const { buyerName, courseTitle, shortDescription, invoiceNumber, sections, seller } = input;
+  const { buyerName, courseTitle, shortDescription, invoiceNumber, driveLink, drivePassword, seller } = input;
   const firstName = buyerName.trim().split(/\s+/)[0] || "there";
   const subject = `You're enrolled — ${courseTitle}`;
   const contact = [seller.email, seller.phone].filter(Boolean).join(" · ") || "us";
+  const hasLink = Boolean(driveLink.trim());
 
-  const lessonRowsHtml = sections
-    .map((section) => {
-      const rows = section.lessons
-        .map((lesson) => {
-          const link = lesson.videoUrl?.trim();
-          const action = link
-            ? `<a href="${escapeHtml(link)}" style="color:#294B32;font-weight:600;text-decoration:none;">Watch &rarr;</a>`
-            : `<span style="color:#9a948a;">Coming soon</span>`;
-          return `<tr>
-            <td style="padding:10px 0;border-bottom:1px solid #E7DFD1;color:#1B2A20;font-size:14px;">${escapeHtml(lesson.title)}</td>
-            <td style="padding:10px 0;border-bottom:1px solid #E7DFD1;text-align:right;font-size:14px;white-space:nowrap;">${action}</td>
-          </tr>`;
-        })
-        .join("");
-      return `<tr><td colspan="2" style="padding:18px 0 6px;color:#6F6A60;font-size:12px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;">${escapeHtml(section.title)}</td></tr>${rows}`;
-    })
-    .join("");
+  const videosHtml = hasLink
+    ? `<div style="margin:0 0 18px;padding:18px 20px;background:#F9F6F2;border-radius:12px;">
+        <p style="margin:0 0 12px;color:#1B2A20;font-size:14px;font-weight:600;">Your course videos</p>
+        <a href="${escapeHtml(driveLink.trim())}" style="display:inline-block;background:#294B32;color:#F9F6F2;font-size:14px;font-weight:600;text-decoration:none;padding:10px 20px;border-radius:999px;">Open on Google Drive &rarr;</a>
+        ${
+          drivePassword.trim()
+            ? `<p style="margin:14px 0 0;color:#1B2A20;font-size:13px;">Password: <span style="font-family:monospace;background:#FFFFFF;border:1px solid #E7DFD1;border-radius:6px;padding:2px 8px;">${escapeHtml(drivePassword.trim())}</span></p>`
+            : ""
+        }
+      </div>`
+    : `<p style="margin:0 0 18px;color:#6F6A60;font-size:14px;line-height:1.6;">
+        Your course videos are being finalised and we'll share the link here shortly.
+      </p>`;
 
-  const lessonRowsText = sections
-    .map(
-      (section) =>
-        `${section.title}\n` +
-        section.lessons
-          .map((l) => `  - ${l.title}: ${l.videoUrl?.trim() || "coming soon"}`)
-          .join("\n"),
-    )
-    .join("\n\n");
+  const videosText = hasLink
+    ? `Your course videos: ${driveLink.trim()}` + (drivePassword.trim() ? `\nPassword: ${drivePassword.trim()}` : "")
+    : "Your course videos are being finalised and we'll share the link here shortly.";
 
   const html = `<!doctype html>
 <html>
@@ -74,13 +64,10 @@ function buildEmail(input: CourseAccessEmailInput): { subject: string; html: str
         <tr><td style="background:#FFFFFF;padding:24px 28px;">
           <p style="margin:0 0 14px;color:#1B2A20;font-size:15px;line-height:1.6;">Hi ${escapeHtml(firstName)},</p>
           <p style="margin:0 0 18px;color:#1B2A20;font-size:15px;line-height:1.6;">
-            Thanks for enrolling in <strong>${escapeHtml(courseTitle)}</strong>. ${escapeHtml(shortDescription)}
+            Congratulations, and thanks for enrolling in <strong>${escapeHtml(courseTitle)}</strong>! ${escapeHtml(shortDescription)}
           </p>
-          <p style="margin:0 0 18px;color:#1B2A20;font-size:15px;line-height:1.6;">Here are your lesson videos:</p>
-          <table role="presentation" width="100%" style="border-collapse:collapse;">
-            ${lessonRowsHtml}
-          </table>
-          <p style="margin:22px 0 0;color:#6F6A60;font-size:13px;line-height:1.6;">
+          ${videosHtml}
+          <p style="margin:0;color:#6F6A60;font-size:13px;line-height:1.6;">
             Your tax invoice${invoiceNumber ? ` (${escapeHtml(invoiceNumber)})` : ""} is attached to this email as a PDF.
           </p>
         </td></tr>
@@ -95,11 +82,9 @@ function buildEmail(input: CourseAccessEmailInput): { subject: string; html: str
 
   const text = `Hi ${firstName},
 
-Thanks for enrolling in ${courseTitle}. ${shortDescription}
+Congratulations, and thanks for enrolling in ${courseTitle}! ${shortDescription}
 
-Your lesson videos:
-
-${lessonRowsText}
+${videosText}
 
 Your tax invoice${invoiceNumber ? ` (${invoiceNumber})` : ""} is attached to this email as a PDF.
 
@@ -109,9 +94,9 @@ Questions? Reach us at ${contact}.`;
 }
 
 /**
- * Sends the "you're enrolled" email with whatever lesson video links the
- * admin has set so far. Never throws — a delivery failure must not undo a
- * successful payment; callers log the returned error themselves if they want.
+ * Sends the "you're enrolled" email with whatever Drive link the admin has
+ * set so far. Never throws — a delivery failure must not undo a successful
+ * payment; callers log the returned error themselves if they want.
  */
 export async function sendCourseAccessEmail(
   input: CourseAccessEmailInput,
@@ -163,9 +148,4 @@ export async function sendCourseAccessEmail(
   } catch (error) {
     return { ok: false, error: error instanceof Error ? error.message : "unknown error" };
   }
-}
-
-/** Where links in the email point back to — the deployed frontend. */
-export function appUrl(): string {
-  return env.appUrl;
 }

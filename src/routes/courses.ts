@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { z } from "zod";
 
-import { normalizeCurriculum, stripLessonVideos } from "../lib/curriculum.js";
+import { normalizeCurriculum, stripCourseSecrets } from "../lib/curriculum.js";
 import { asyncHandler, HttpError, onlySentFields } from "../lib/http.js";
 import { authenticate, requireAdmin } from "../middleware/auth.js";
 import { Course } from "../models/Course.js";
@@ -15,8 +15,8 @@ function withId(doc: Record<string, unknown>) {
   return { ...rest, id: String(_id) };
 }
 
-/** What the catalogue pages may see: no video links — those are for a paying buyer's inbox. */
-const publicCourse = (doc: Record<string, unknown>) => stripLessonVideos(withId(doc));
+/** What the catalogue pages may see: no Drive link/password — those are for a paying buyer's inbox. */
+const publicCourse = (doc: Record<string, unknown>) => stripCourseSecrets(withId(doc));
 
 /** Public catalogue. `?featured=true` narrows to the home-page picks. */
 coursesRouter.get(
@@ -48,11 +48,6 @@ const lessonSchema = z.object({
   id: z.string().optional(),
   title: z.string().trim().min(1, "Every lesson needs a title."),
   duration: z.coerce.number().min(0).default(0),
-  videoUrl: z
-    .string()
-    .trim()
-    .default("")
-    .refine((v) => v === "" || /^https?:\/\//i.test(v), "Lesson video must be a full https:// link."),
 });
 
 const moduleSchema = z.object({
@@ -85,6 +80,12 @@ const courseSchema = z.object({
   includedItems: z.array(z.string().trim().min(1)).default([]),
   requirements: z.array(z.string().trim().min(1)).default([]),
   faqs: z.array(z.object({ question: z.string().trim().min(1), answer: z.string().trim().min(1) })).default([]),
+  driveLink: z
+    .string()
+    .trim()
+    .default("")
+    .refine((v) => v === "" || /^https?:\/\//i.test(v), "Drive link must be a full https:// link."),
+  drivePassword: z.string().trim().default(""),
 });
 
 type CourseInput = z.infer<typeof courseSchema>;

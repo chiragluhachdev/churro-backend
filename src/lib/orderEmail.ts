@@ -7,7 +7,7 @@ import { Order, type OrderDoc } from "../models/Order.js";
 
 /**
  * Sends (or resends) the "you're enrolled" email for one paid order, using
- * whatever lesson video links the admin has set on the course right now —
+ * whatever Drive link/password the admin has set on the course right now —
  * so editing them later and hitting "Resend" picks up the change. The tax
  * invoice goes along as a real PDF attachment, not a link to click through.
  * Records the outcome on the order; never throws.
@@ -44,10 +44,8 @@ export async function dispatchOrderEmail(order: OrderDoc): Promise<{ ok: true } 
     courseTitle: order.courseTitle,
     shortDescription: course?.shortDescription ?? "",
     invoiceNumber: order.invoiceNumber,
-    sections: (course?.curriculum ?? []).map((section) => ({
-      title: section.title,
-      lessons: section.lessons.map((lesson) => ({ title: lesson.title, videoUrl: lesson.videoUrl })),
-    })),
+    driveLink: course?.driveLink ?? "",
+    drivePassword: course?.drivePassword ?? "",
     seller,
     invoicePdf,
   });

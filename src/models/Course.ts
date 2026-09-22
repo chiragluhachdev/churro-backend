@@ -12,12 +12,6 @@ const lessonSchema = new Schema(
     title: { type: String, required: true },
     /** Minutes — shown in the syllabus on the course page. */
     duration: { type: Number, default: 0, min: 0 },
-    /**
-     * Where the recording actually lives (YouTube, Drive, Vimeo…). Admin-only —
-     * never sent to the public catalogue, only emailed to a buyer once they've
-     * paid for this course.
-     */
-    videoUrl: { type: String, default: "" },
   },
   { _id: false },
 );
@@ -74,6 +68,13 @@ const courseSchema = new Schema(
     whatYouWillLearn: [String],
     includedItems: [String],
     requirements: [String],
+    /**
+     * Where the recordings actually live — one Google Drive link (and its
+     * password, if any) per course, not per lesson. Admin-only: stripped
+     * from every public response, only ever emailed to a buyer once paid.
+     */
+    driveLink: { type: String, default: "" },
+    drivePassword: { type: String, default: "" },
     faqs: [faqSchema],
   },
   { timestamps: true },

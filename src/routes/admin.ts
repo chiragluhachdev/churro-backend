@@ -131,12 +131,9 @@ adminRouter.get(
         },
         emailSentAt: order.emailSentAt ? new Date(order.emailSentAt).toISOString() : undefined,
         emailError: order.emailError || "",
-        // What the enrollment email lists — lets the admin see exactly what a
-        // resend would go out with, including which lessons still lack a link.
-        emailSections: (course?.curriculum ?? []).map((section) => ({
-          title: section.title,
-          lessons: section.lessons.map((l) => ({ title: l.title, hasVideo: Boolean(l.videoUrl) })),
-        })),
+        // What a resend would actually go out with — lets the admin see at a
+        // glance whether the course still needs its Drive link filled in.
+        courseDelivery: { driveLink: course?.driveLink || "", hasPassword: Boolean(course?.drivePassword) },
       },
     });
   }),
