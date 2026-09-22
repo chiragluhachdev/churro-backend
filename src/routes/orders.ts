@@ -53,6 +53,11 @@ async function orderSummary(order: Record<string, unknown>, course: Record<strin
     paidAt: order.paidAt ? new Date(order.paidAt as string).toISOString() : undefined,
     invoiceNumber: order.invoiceNumber || "",
     gst,
+    // What the browser needs to open Razorpay's own checkout widget. key_id
+    // is Razorpay's publishable key — safe client-side, unlike key_secret,
+    // which never leaves this file.
+    providerOrderId: order.providerOrderId || "",
+    razorpayKeyId: order.provider === "razorpay" ? process.env.RAZORPAY_KEY_ID || "" : "",
     course: course
       ? {
           id: String(course._id),

@@ -6,6 +6,7 @@ import { connectDB } from "./lib/db.js";
 import { activeEmailProvider } from "./lib/email.js";
 import { env } from "./lib/env.js";
 import { HttpError } from "./lib/http.js";
+import { activeProvider as activePaymentProvider } from "./lib/payments.js";
 import { adminRouter } from "./routes/admin.js";
 import { authRouter } from "./routes/auth.js";
 import { chatRouter } from "./routes/chat.js";
@@ -29,6 +30,8 @@ app.get("/health", (_req, res) => {
       : null,
     // "dummy" just logs the email instead of sending it — set BREVO_API_KEY to go live.
     emailProvider: activeEmailProvider(),
+    // "dummy" auto-completes checkout with no real charge — "razorpay" charges real cards/UPI.
+    paymentProvider: activePaymentProvider(),
   });
 });
 
