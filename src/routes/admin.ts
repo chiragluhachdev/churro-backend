@@ -31,6 +31,90 @@ adminRouter.get(
   }),
 );
 
+/** One row per unique paying customer — a CRM view rolled up from paid orders. */
+adminRouter.get(
+  "/customers",
+  asyncHandler(async (req, res) => {
+    const q = String(req.query.q ?? "").trim();
+    const match: Record<string, unknown> = { status: "paid" };
+    if (q) {
+      const rx = new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i");
+      match.$or = [{ buyerName: rx }, { buyerEmail: rx }, { buyerPhone: rx }];
+    }
+
+    const customers = await Order.aggregate<{
+      _id: string;
+      name: string;
+      phone: string;
+      totalSpent: number;
+      orderCount: number;
+      firstPurchaseAt: Date;
+      lastPurchaseAt: Date;
+    }>([
+      { $match: match },
+      // $last below picks up the most recently paid order's details.
+      { $sort: { paidAt: 1 } },
+      {
+        $group: {
+          _id: "$buyerEmail",
+          name: { $last: "$buyerName" },
+          phone: { $last: "$buyerPhone" },
+          totalSpent: { $sum: "$amount" },
+          orderCount: { $sum: 1 },
+          firstPurchaseAt: { $min: "$paidAt" },
+          lastPurchaseAt: { $max: "$paidAt" },
+        },
+      },
+      { $sort: { lastPurchaseAt: -1 } },
+    ]);
+
+    res.json({
+      customers: customers.map((c) => ({
+        email: c._id,
+        name: c.name,
+        phone: c.phone,
+        totalSpent: c.totalSpent,
+        orderCount: c.orderCount,
+        firstPurchaseAt: c.firstPurchaseAt?.toISOString(),
+        lastPurchaseAt: c.lastPurchaseAt?.toISOString(),
+      })),
+    });
+  }),
+);
+
+/** One customer's full purchase history, by email — every course, order and invoice. */
+adminRouter.get(
+  "/customers/:email",
+  asyncHandler(async (req, res) => {
+    const email = String(req.params.email).trim().toLowerCase();
+    const orders = await Order.find({ buyerEmail: email, status: "paid" }).sort({ paidAt: -1 }).lean();
+    if (orders.length === 0) throw new HttpError(404, "No customer found with that email.");
+    const latest = orders[0];
+
+    res.json({
+      customer: {
+        email,
+        name: latest.buyerName,
+        phone: latest.buyerPhone,
+        totalSpent: orders.reduce((sum, o) => sum + o.amount, 0),
+        orderCount: orders.length,
+        firstPurchaseAt: orders[orders.length - 1].paidAt
+          ? new Date(orders[orders.length - 1].paidAt!).toISOString()
+          : undefined,
+        lastPurchaseAt: latest.paidAt ? new Date(latest.paidAt).toISOString() : undefined,
+        orders: orders.map((o) => ({
+          id: String(o._id),
+          courseTitle: o.courseTitle,
+          amount: o.amount,
+          invoiceNumber: o.invoiceNumber || "",
+          paidAt: o.paidAt ? new Date(o.paidAt).toISOString() : undefined,
+          emailSentAt: o.emailSentAt ? new Date(o.emailSentAt).toISOString() : undefined,
+        })),
+      },
+    });
+  }),
+);
+
 /** Full catalogue including unpublished drafts. */
 adminRouter.get(
   "/courses",
