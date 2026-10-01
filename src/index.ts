@@ -12,6 +12,7 @@ import { authRouter } from "./routes/auth.js";
 import { chatRouter } from "./routes/chat.js";
 import { adminContentRouter, contentRouter } from "./routes/content.js";
 import { coursesRouter } from "./routes/courses.js";
+import { liveSessionsRouter } from "./routes/liveSessions.js";
 import { ordersRouter } from "./routes/orders.js";
 import { uploadRouter } from "./routes/upload.js";
 import { webhooksRouter } from "./routes/webhooks.js";
@@ -48,6 +49,7 @@ app.use("/api/courses", coursesRouter);
 app.use("/api/orders", ordersRouter);
 app.use("/api/content", contentRouter);
 app.use("/api/admin/content", adminContentRouter);
+app.use("/api/admin/live-sessions", liveSessionsRouter);
 app.use("/api/admin", adminRouter);
 app.use("/api/upload", uploadRouter);
 

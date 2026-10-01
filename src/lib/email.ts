@@ -1,9 +1,6 @@
-export type EmailProvider = "dummy" | "brevo";
+import { activeEmailProvider, sendBrevoEmail } from "./brevo.js";
 
-/** Same convention as the chat widget's GROQ_API_KEY: present the key, get the real thing. */
-export function activeEmailProvider(): EmailProvider {
-  return process.env.BREVO_API_KEY ? "brevo" : "dummy";
-}
+export { activeEmailProvider };
 
 interface CourseAccessEmailInput {
   to: string;
@@ -102,50 +99,11 @@ export async function sendCourseAccessEmail(
   input: CourseAccessEmailInput,
 ): Promise<{ ok: true } | { ok: false; error: string }> {
   const { subject, html, text } = buildEmail(input);
-  const provider = activeEmailProvider();
-
-  if (provider === "dummy") {
-    console.log(
-      `[email:dummy] Would send "${subject}" to ${input.to}` +
-        (input.invoicePdf ? ` with ${input.invoicePdf.filename} attached` : "") +
-        `. Set BREVO_API_KEY to actually send.`,
-    );
-    return { ok: true };
-  }
-
-  try {
-    const sender = {
-      name: process.env.BREVO_SENDER_NAME || "Churro Academy",
-      email: process.env.BREVO_SENDER_EMAIL || "",
-    };
-    const response = await fetch("https://api.brevo.com/v3/smtp/email", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-        "api-key": process.env.BREVO_API_KEY!,
-      },
-      body: JSON.stringify({
-        sender,
-        to: [{ email: input.to, name: input.buyerName || undefined }],
-        subject,
-        htmlContent: html,
-        textContent: text,
-        ...(input.invoicePdf && {
-          attachment: [{ name: input.invoicePdf.filename, content: input.invoicePdf.content.toString("base64") }],
-        }),
-      }),
-      signal: AbortSignal.timeout(15_000),
-    });
-    if (!response.ok) {
-      const body = await response.text().catch(() => "");
-      // Almost always means BREVO_SENDER_EMAIL isn't verified in the Brevo
-      // account yet, or the account's IP allowlist is blocking this server —
-      // Brevo has no sandbox sender the way some providers do.
-      return { ok: false, error: `brevo ${response.status}: ${body.slice(0, 300)}` };
-    }
-    return { ok: true };
-  } catch (error) {
-    return { ok: false, error: error instanceof Error ? error.message : "unknown error" };
-  }
+  return sendBrevoEmail({
+    to: { email: input.to, name: input.buyerName },
+    subject,
+    html,
+    text,
+    attachment: input.invoicePdf,
+  });
 }
