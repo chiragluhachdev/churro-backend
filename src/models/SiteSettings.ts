@@ -7,9 +7,9 @@ const { Schema, model, models } = mongoose;
 
 /**
  * Site-wide switches, kept as one document (like BillingSettings/ChefProfile)
- * so the admin can flip them without a deploy. Currently just the
- * "closed for maintenance" lockout — the frontend's proxy reads this on
- * every public request and swaps in the maintenance page when it's on.
+ * so the admin can flip them without a deploy. The frontend reads this on
+ * every public request (for maintenance mode, via its proxy) or on each page
+ * load (for everything else).
  */
 const siteSettingsSchema = new Schema(
   {
@@ -17,6 +17,8 @@ const siteSettingsSchema = new Schema(
     maintenanceEnabled: { type: Boolean, default: false },
     /** Shown on the public "we'll be back soon" page. Empty means use the page's own default copy. */
     maintenanceMessage: { type: String, default: "" },
+    /** Locked by default until the admin turns it on — hides the nav link and the /calculator page itself. */
+    calculatorEnabled: { type: Boolean, default: false },
   },
   { timestamps: true },
 );
