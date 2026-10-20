@@ -6,6 +6,7 @@ import { authenticate, requireAdmin } from "../middleware/auth.js";
 import { BillingSettings } from "../models/BillingSettings.js";
 import { ChefProfile } from "../models/ChefProfile.js";
 import { Post } from "../models/Post.js";
+import { SiteSettings } from "../models/SiteSettings.js";
 import { Testimonial } from "../models/Testimonial.js";
 
 /** Strips Mongo internals and exposes a string id. */
@@ -74,6 +75,24 @@ contentRouter.get(
         email: doc?.email || "",
         phone: doc?.phone || "",
         gstRate: doc?.gstRate ?? 18,
+      },
+    });
+  }),
+);
+
+/**
+ * Site-wide switches — just the maintenance lockout for now. Polled by the
+ * frontend's proxy on (almost) every request, so this stays a single cheap
+ * lookup with no joins.
+ */
+contentRouter.get(
+  "/site",
+  asyncHandler(async (_req, res) => {
+    const doc = await SiteSettings.findOne({ key: "site" }).lean();
+    res.json({
+      site: {
+        maintenanceEnabled: doc?.maintenanceEnabled ?? false,
+        maintenanceMessage: doc?.maintenanceMessage || "",
       },
     });
   }),
@@ -264,5 +283,28 @@ adminContentRouter.put(
       { new: true, upsert: true },
     );
     res.json({ billing: clean(doc!.toObject()) });
+  }),
+);
+
+/* ---- site settings ---- */
+
+const siteSettingsSchema = z.object({
+  maintenanceEnabled: z.coerce.boolean().default(false),
+  maintenanceMessage: z.string().trim().default(""),
+});
+
+adminContentRouter.put(
+  "/site",
+  asyncHandler(async (req, res) => {
+    const parsed = siteSettingsSchema.safeParse(req.body);
+    if (!parsed.success) throw new HttpError(400, parsed.error.issues[0]?.message ?? "Invalid settings.");
+    const doc = await SiteSettings.findOneAndUpdate(
+      { key: "site" },
+      { ...parsed.data, key: "site" },
+      { new: true, upsert: true },
+    );
+    res.json({
+      site: { maintenanceEnabled: doc!.maintenanceEnabled, maintenanceMessage: doc!.maintenanceMessage },
+    });
   }),
 );
