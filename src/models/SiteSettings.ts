@@ -17,6 +17,9 @@ const siteSettingsSchema = new Schema(
     maintenanceEnabled: { type: Boolean, default: false },
     /** Shown on the public "we'll be back soon" page. Empty means use the page's own default copy. */
     maintenanceMessage: { type: String, default: "" },
+    /** Stops new course purchases; course pages show salesPausedMessage instead of the enroll button. */
+    salesPaused: { type: Boolean, default: false },
+    salesPausedMessage: { type: String, default: "" },
   },
   { timestamps: true },
 );

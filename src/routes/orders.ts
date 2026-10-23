@@ -9,6 +9,7 @@ import { activeProvider, createProviderOrder, verifyProviderPayment } from "../l
 import { BillingSettings } from "../models/BillingSettings.js";
 import { Course } from "../models/Course.js";
 import { Order } from "../models/Order.js";
+import { SiteSettings } from "../models/SiteSettings.js";
 
 export const ordersRouter = Router();
 
@@ -100,6 +101,12 @@ ordersRouter.post(
     if (!parsed.success) throw new HttpError(400, parsed.error.issues[0]?.message ?? "Check your details and try again.");
     const { courseId, name, email, phone } = parsed.data;
     if (!isObjectId(courseId)) throw new HttpError(400, "Which course?");
+
+    // Only blocks starting a purchase — a payment already underway still confirms.
+    const site = await SiteSettings.findOne({ key: "site" }).lean();
+    if (site?.salesPaused) {
+      throw new HttpError(409, site.salesPausedMessage || "Enrolments are paused right now. Please contact us or try again later.");
+    }
 
     const course = await Course.findOne({ _id: courseId, published: true }).lean();
     if (!course) throw new HttpError(404, "This course isn't available right now.");

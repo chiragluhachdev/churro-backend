@@ -93,6 +93,8 @@ contentRouter.get(
       site: {
         maintenanceEnabled: doc?.maintenanceEnabled ?? false,
         maintenanceMessage: doc?.maintenanceMessage || "",
+        salesPaused: doc?.salesPaused ?? false,
+        salesPausedMessage: doc?.salesPausedMessage || "",
       },
     });
   }),
@@ -291,6 +293,8 @@ adminContentRouter.put(
 const siteSettingsSchema = z.object({
   maintenanceEnabled: z.coerce.boolean().default(false),
   maintenanceMessage: z.string().trim().default(""),
+  salesPaused: z.coerce.boolean().default(false),
+  salesPausedMessage: z.string().trim().default(""),
 });
 
 adminContentRouter.put(
@@ -304,7 +308,12 @@ adminContentRouter.put(
       { new: true, upsert: true },
     );
     res.json({
-      site: { maintenanceEnabled: doc!.maintenanceEnabled, maintenanceMessage: doc!.maintenanceMessage },
+      site: {
+        maintenanceEnabled: doc!.maintenanceEnabled,
+        maintenanceMessage: doc!.maintenanceMessage,
+        salesPaused: doc!.salesPaused,
+        salesPausedMessage: doc!.salesPausedMessage,
+      },
     });
   }),
 );
