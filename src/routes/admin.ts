@@ -186,7 +186,7 @@ adminRouter.get(
     const order = await Order.findById(id).lean();
     if (!order) throw new HttpError(404, "Order not found.");
     const [course, settings] = await Promise.all([
-      Course.findById(order.course).lean(),
+      order.course ? Course.findById(order.course).lean() : null,
       BillingSettings.findOne({ key: "billing" }).lean(),
     ]);
     const gstRate = settings?.gstRate ?? 18;
@@ -194,6 +194,8 @@ adminRouter.get(
     res.json({
       order: {
         id: String(order._id),
+        kind: order.kind ?? "course",
+        passUntil: order.passUntil ? new Date(order.passUntil).toISOString() : undefined,
         invoiceNumber: order.invoiceNumber || "",
         status: order.status,
         provider: order.provider,

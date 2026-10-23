@@ -17,8 +17,6 @@ const siteSettingsSchema = new Schema(
     maintenanceEnabled: { type: Boolean, default: false },
     /** Shown on the public "we'll be back soon" page. Empty means use the page's own default copy. */
     maintenanceMessage: { type: String, default: "" },
-    /** Locked by default until the admin turns it on — hides the nav link and the /calculator page itself. */
-    calculatorEnabled: { type: Boolean, default: false },
   },
   { timestamps: true },
 );

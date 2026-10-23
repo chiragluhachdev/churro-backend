@@ -49,7 +49,8 @@ liveSessionsRouter.post(
     const { title, description, link, scheduledAt } = parsed.data;
 
     const students = await Order.aggregate<{ _id: string; name: string }>([
-      { $match: { status: "paid" } },
+      // Course students only — Churro AI pass buyers aren't enrolled in anything.
+      { $match: { status: "paid", kind: { $ne: "ai_pass" } } },
       { $sort: { createdAt: -1 } },
       { $group: { _id: "$buyerEmail", name: { $first: "$buyerName" } } },
     ]);

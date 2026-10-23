@@ -93,7 +93,6 @@ contentRouter.get(
       site: {
         maintenanceEnabled: doc?.maintenanceEnabled ?? false,
         maintenanceMessage: doc?.maintenanceMessage || "",
-        calculatorEnabled: doc?.calculatorEnabled ?? false,
       },
     });
   }),
@@ -292,7 +291,6 @@ adminContentRouter.put(
 const siteSettingsSchema = z.object({
   maintenanceEnabled: z.coerce.boolean().default(false),
   maintenanceMessage: z.string().trim().default(""),
-  calculatorEnabled: z.coerce.boolean().default(false),
 });
 
 adminContentRouter.put(
@@ -306,11 +304,7 @@ adminContentRouter.put(
       { new: true, upsert: true },
     );
     res.json({
-      site: {
-        maintenanceEnabled: doc!.maintenanceEnabled,
-        maintenanceMessage: doc!.maintenanceMessage,
-        calculatorEnabled: doc!.calculatorEnabled,
-      },
+      site: { maintenanceEnabled: doc!.maintenanceEnabled, maintenanceMessage: doc!.maintenanceMessage },
     });
   }),
 );

@@ -1,3 +1,4 @@
+import { sendAiPassEmail } from "./aiPassEmail.js";
 import { sendCourseAccessEmail } from "./email.js";
 import { gstBreakdown } from "./invoice.js";
 import { generateInvoicePdf } from "./invoicePdf.js";
@@ -13,7 +14,7 @@ import { Order, type OrderDoc } from "../models/Order.js";
  * Records the outcome on the order; never throws.
  */
 export async function dispatchOrderEmail(order: OrderDoc): Promise<{ ok: true } | { ok: false; error: string }> {
-  const course = (await Course.findById(order.course).lean()) as CourseDoc | null;
+  const course = order.course ? ((await Course.findById(order.course).lean()) as CourseDoc | null) : null;
   const settings = await BillingSettings.findOne({ key: "billing" }).lean();
   const seller = {
     companyName: settings?.companyName || "Churro Academy",
@@ -38,17 +39,28 @@ export async function dispatchOrderEmail(order: OrderDoc): Promise<{ ok: true } 
         }).then((content) => ({ filename: `Invoice-${order.invoiceNumber || order._id}.pdf`, content }))
       : undefined;
 
-  const result = await sendCourseAccessEmail({
-    to: order.buyerEmail,
-    buyerName: order.buyerName,
-    courseTitle: order.courseTitle,
-    shortDescription: course?.shortDescription ?? "",
-    invoiceNumber: order.invoiceNumber,
-    driveLink: course?.driveLink ?? "",
-    drivePassword: course?.drivePassword ?? "",
-    seller,
-    invoicePdf,
-  });
+  const result =
+    order.kind === "ai_pass"
+      ? await sendAiPassEmail({
+          to: order.buyerEmail,
+          name: order.buyerName,
+          passName: order.courseTitle,
+          passUntil: order.passUntil ?? new Date(),
+          invoiceNumber: order.invoiceNumber,
+          seller,
+          invoicePdf,
+        })
+      : await sendCourseAccessEmail({
+          to: order.buyerEmail,
+          buyerName: order.buyerName,
+          courseTitle: order.courseTitle,
+          shortDescription: course?.shortDescription ?? "",
+          invoiceNumber: order.invoiceNumber,
+          driveLink: course?.driveLink ?? "",
+          drivePassword: course?.drivePassword ?? "",
+          seller,
+          invoicePdf,
+        });
 
   if (result.ok) {
     await Order.updateOne({ _id: order._id }, { $set: { emailSentAt: new Date(), emailError: "" } });

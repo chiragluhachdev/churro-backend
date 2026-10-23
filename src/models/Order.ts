@@ -20,8 +20,22 @@ const orderSchema = new Schema(
     buyerEmail: { type: String, required: true, trim: true, lowercase: true, index: true },
     /** WhatsApp number the chef sends the course materials to. */
     buyerPhone: { type: String, required: true, trim: true },
-    course: { type: Schema.Types.ObjectId, ref: "Course", required: true, index: true },
-    /** Snapshot for receipts, even if the course is later renamed. */
+    /** A course purchase, or a Churro AI pass (no course, tied to a member instead). */
+    kind: { type: String, enum: ["course", "ai_pass"], default: "course", index: true },
+    course: {
+      type: Schema.Types.ObjectId,
+      ref: "Course",
+      index: true,
+      required: function (this: { kind?: string }) {
+        return this.kind !== "ai_pass";
+      },
+    },
+    aiMember: { type: Schema.Types.ObjectId, ref: "AiMember", index: true },
+    /** Pass length locked in when the order was created, so a later settings change can't alter what was bought. */
+    passDays: { type: Number },
+    /** Set once the pass has been granted — also guards against granting it twice. */
+    passUntil: { type: Date },
+    /** Snapshot for receipts, even if the course is later renamed. For a pass, the pass name. */
     courseTitle: { type: String, required: true },
     /** Whole rupees, inclusive of GST, locked at creation. */
     amount: { type: Number, required: true, min: 0 },

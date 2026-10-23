@@ -4,7 +4,7 @@ import { z } from "zod";
 
 import { asyncHandler, HttpError } from "../lib/http.js";
 import { gstBreakdown, nextInvoiceNumber } from "../lib/invoice.js";
-import { dispatchOrderEmail } from "../lib/orderEmail.js";
+import { fulfillPaidOrder } from "../lib/fulfillment.js";
 import { activeProvider, createProviderOrder, verifyProviderPayment } from "../lib/payments.js";
 import { BillingSettings } from "../models/BillingSettings.js";
 import { Course } from "../models/Course.js";
@@ -161,7 +161,8 @@ ordersRouter.post(
     if (!isObjectId(orderId)) throw new HttpError(404, "Order not found.");
 
     const order = await Order.findById(orderId);
-    if (!order) throw new HttpError(404, "Order not found.");
+    // Churro AI passes are confirmed through /api/ai, never this guest course flow.
+    if (!order || order.kind === "ai_pass") throw new HttpError(404, "Order not found.");
 
     const course = await Course.findOne({ _id: String(order.course), published: true }).lean();
 
@@ -212,7 +213,7 @@ ordersRouter.post(
     // Fire-and-forget: a slow or failed email must never hold up — or undo —
     // a payment that's already gone through. Failures are recorded on the
     // order for the admin to see and retry from the billing screen.
-    void dispatchOrderEmail(claimed);
+    void fulfillPaidOrder(claimed);
 
     res.json({ ok: true, orderId: String(claimed._id) });
   }),

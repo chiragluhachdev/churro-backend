@@ -2,7 +2,7 @@ import crypto from "node:crypto";
 import express, { Router } from "express";
 
 import { nextInvoiceNumber } from "../lib/invoice.js";
-import { dispatchOrderEmail } from "../lib/orderEmail.js";
+import { fulfillPaidOrder } from "../lib/fulfillment.js";
 import { Order } from "../models/Order.js";
 
 export const webhooksRouter = Router();
@@ -82,7 +82,7 @@ webhooksRouter.post(
       if (!claimed) return; // lost the race to the client's own confirm
 
       console.log(`[webhook] order ${String(claimed._id)} marked paid — client never confirmed, webhook caught it`);
-      void dispatchOrderEmail(claimed);
+      void fulfillPaidOrder(claimed);
     })().catch((error) => console.error("[webhook] processing failed:", error));
   },
 );

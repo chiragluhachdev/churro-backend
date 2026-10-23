@@ -8,6 +8,8 @@ import { env } from "./lib/env.js";
 import { HttpError } from "./lib/http.js";
 import { activeProvider as activePaymentProvider } from "./lib/payments.js";
 import { adminRouter } from "./routes/admin.js";
+import { aiRouter } from "./routes/ai.js";
+import { aiAdminRouter } from "./routes/aiAdmin.js";
 import { authRouter } from "./routes/auth.js";
 import { chatRouter } from "./routes/chat.js";
 import { adminContentRouter, contentRouter } from "./routes/content.js";
@@ -50,7 +52,9 @@ app.use("/api/orders", ordersRouter);
 app.use("/api/content", contentRouter);
 app.use("/api/admin/content", adminContentRouter);
 app.use("/api/admin/live-sessions", liveSessionsRouter);
+app.use("/api/admin/ai", aiAdminRouter);
 app.use("/api/admin", adminRouter);
+app.use("/api/ai", aiRouter);
 app.use("/api/upload", uploadRouter);
 
 app.use((_req, res) => {
