@@ -7,6 +7,7 @@ export interface AiConfig {
   passDays: number;
   freeTries: number;
   trialMinutes: number;
+  autoRenewEnabled: boolean;
 }
 
 const DEFAULTS: AiConfig = {
@@ -16,6 +17,7 @@ const DEFAULTS: AiConfig = {
   passDays: 365,
   freeTries: 1,
   trialMinutes: 60,
+  autoRenewEnabled: true,
 };
 
 export async function getAiConfig(): Promise<AiConfig> {
@@ -27,6 +29,7 @@ export async function getAiConfig(): Promise<AiConfig> {
     passDays: doc?.passDays ?? DEFAULTS.passDays,
     freeTries: doc?.freeTries ?? DEFAULTS.freeTries,
     trialMinutes: doc?.trialMinutes ?? DEFAULTS.trialMinutes,
+    autoRenewEnabled: doc?.autoRenewEnabled ?? DEFAULTS.autoRenewEnabled,
   };
 }
 
@@ -45,7 +48,11 @@ interface MemberLike {
   email?: string | null;
   freeTriesUsed?: number | null;
   trialEndsAt?: Date | null;
+  trialExportUsed?: boolean | null;
   passExpiresAt?: Date | null;
+  subscriptionStatus?: string | null;
+  autoRenew?: boolean | null;
+  nextChargeAt?: Date | null;
   lastLoginAt?: Date | null;
   createdAt?: Date | null;
 }
@@ -70,7 +77,11 @@ export function memberView(member: MemberLike, config: AiConfig) {
     freeTriesUsed: member.freeTriesUsed ?? 0,
     freeTriesLeft: Math.max(0, config.freeTries - (member.freeTriesUsed ?? 0)),
     trialEndsAt: iso(member.trialEndsAt),
+    trialExportUsed: Boolean(member.trialExportUsed),
     passExpiresAt: iso(member.passExpiresAt),
+    autoRenew: Boolean(member.autoRenew),
+    subscriptionStatus: member.subscriptionStatus ?? "",
+    nextChargeAt: iso(member.nextChargeAt),
     lastLoginAt: iso(member.lastLoginAt),
     joinedAt: iso(member.createdAt),
   };

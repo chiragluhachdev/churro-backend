@@ -7,6 +7,7 @@ import type { AiAccess, AiConfig } from "../lib/aiAccess.js";
 import { activeEmailProvider } from "../lib/brevo.js";
 import { asyncHandler, HttpError } from "../lib/http.js";
 import { activeProvider } from "../lib/payments.js";
+import { cancelSubscription } from "../lib/subscriptions.js";
 import { authenticate, requireAdmin } from "../middleware/auth.js";
 import { AiMember } from "../models/AiMember.js";
 import { AiSettings } from "../models/AiSettings.js";
@@ -31,6 +32,7 @@ const settingsSchema = z.object({
   passDays: z.coerce.number().int().min(1, "The pass must last at least a day.").max(3650),
   freeTries: z.coerce.number().int().min(0).max(10, "Ten free tries at most."),
   trialMinutes: z.coerce.number().int().min(1, "A free try must last at least a minute.").max(1440, "A free try can last 24 hours at most."),
+  autoRenewEnabled: z.coerce.boolean(),
 });
 
 aiAdminRouter.put(
@@ -113,6 +115,7 @@ aiAdminRouter.get(
       triedFree,
       activePasses,
       onTrial,
+      autoRenewing,
       buyers,
       revenue,
       revenueThisMonth,
@@ -124,6 +127,7 @@ aiAdminRouter.get(
       AiMember.countDocuments({ freeTriesUsed: { $gt: 0 } }),
       AiMember.countDocuments({ passExpiresAt: { $gt: now } }),
       AiMember.countDocuments(accessFilter("trial", config, now)),
+      AiMember.countDocuments({ autoRenew: true }),
       Order.distinct("aiMember", paid),
       Order.aggregate<{ total: number; count: number }>([
         { $match: paid },
@@ -146,6 +150,7 @@ aiAdminRouter.get(
         buyers: buyers.length,
         activePasses,
         onTrial,
+        autoRenewing,
         passesSold: revenue[0]?.count ?? 0,
         revenue: revenue[0]?.total ?? 0,
         revenueThisMonth: revenueThisMonth[0]?.total ?? 0,
@@ -185,11 +190,28 @@ aiAdminRouter.post(
   }),
 );
 
-/** Ends their pass and any free try running right now. Paid orders stay in Billing. */
+/** Stops future auto-renewal charges. They keep the period already paid for. */
+aiAdminRouter.post(
+  "/members/:id/stop-renewal",
+  asyncHandler(async (req, res) => {
+    const member = await loadMember(String(req.params.id));
+    if (!member.subscriptionId || !member.autoRenew) throw new HttpError(409, "Auto-renewal isn't on for this member.");
+    await cancelSubscription(member.subscriptionId, true);
+    member.set({ autoRenew: false, nextChargeAt: undefined });
+    await member.save();
+    res.json({ member: memberView(member.toObject(), await getAiConfig()) });
+  }),
+);
+
+/** Ends their pass, any free try running right now, and auto-renewal at once. Paid orders stay in Billing. */
 aiAdminRouter.post(
   "/members/:id/revoke",
   asyncHandler(async (req, res) => {
     const member = await loadMember(String(req.params.id));
+    if (member.subscriptionId && member.autoRenew) {
+      await cancelSubscription(member.subscriptionId, false);
+      member.set({ autoRenew: false, nextChargeAt: undefined, subscriptionStatus: "cancelled" });
+    }
     member.set({ passExpiresAt: undefined, trialEndsAt: undefined });
     await member.save();
     res.json({ member: memberView(member.toObject(), await getAiConfig()) });
@@ -201,7 +223,7 @@ aiAdminRouter.post(
   "/members/:id/reset-trial",
   asyncHandler(async (req, res) => {
     const member = await loadMember(String(req.params.id));
-    member.set({ freeTriesUsed: 0, trialEndsAt: undefined });
+    member.set({ freeTriesUsed: 0, trialEndsAt: undefined, trialExportUsed: false });
     await member.save();
     res.json({ member: memberView(member.toObject(), await getAiConfig()) });
   }),

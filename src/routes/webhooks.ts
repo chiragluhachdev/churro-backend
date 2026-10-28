@@ -1,7 +1,9 @@
 import crypto from "node:crypto";
 import express, { Router } from "express";
 
+import { applySubscriptionEvent } from "../lib/aiRenewals.js";
 import { nextInvoiceNumber } from "../lib/invoice.js";
+import type { RazorpaySubscription } from "../lib/subscriptions.js";
 import { fulfillPaidOrder } from "../lib/fulfillment.js";
 import { Order } from "../models/Order.js";
 
@@ -45,7 +47,13 @@ webhooksRouter.post(
       return res.status(400).end();
     }
 
-    let event: { event?: string; payload?: { payment?: { entity?: { id?: string; order_id?: string } } } };
+    let event: {
+      event?: string;
+      payload?: {
+        payment?: { entity?: { id?: string; order_id?: string; invoice_id?: string | null; amount?: number } };
+        subscription?: { entity?: RazorpaySubscription };
+      };
+    };
     try {
       event = JSON.parse(rawBody.toString("utf8"));
     } catch {
@@ -56,8 +64,19 @@ webhooksRouter.post(
     // but a 2xx, and the actual DB work below doesn't need to block that.
     res.status(200).json({ ok: true });
 
+    // Churro AI auto-renewal: activation, each monthly charge, failures, cancellation.
+    const subscription = event.payload?.subscription?.entity;
+    if (event.event?.startsWith("subscription.") && subscription?.id) {
+      void applySubscriptionEvent(event.event, subscription, event.payload?.payment?.entity).catch((error) =>
+        console.error(`[webhook] ${event.event} failed:`, error),
+      );
+      return;
+    }
+
     if (event.event !== "payment.captured") return;
     const payment = event.payload?.payment?.entity;
+    // A subscription charge also fires payment.captured; subscription.charged above is what books it.
+    if (payment?.invoice_id) return;
     const razorpayOrderId = payment?.order_id;
     const paymentId = payment?.id;
     if (!razorpayOrderId || !paymentId) return;

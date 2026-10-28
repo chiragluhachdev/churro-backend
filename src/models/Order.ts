@@ -42,6 +42,9 @@ const orderSchema = new Schema(
     passDays: { type: Number },
     /** Set once the pass has been granted — also guards against granting it twice. */
     passUntil: { type: Date },
+    /** For an auto-renewal charge: the Razorpay subscription it belongs to, and the end of the period it paid for. */
+    subscriptionId: { type: String, index: true },
+    periodEnd: { type: Date },
     /** Snapshot for receipts, even if the course is later renamed. For a pass, the pass name. */
     courseTitle: { type: String, required: true },
     /** Whole rupees, inclusive of GST, locked at creation. */
@@ -71,6 +74,13 @@ const orderSchema = new Schema(
     emailError: { type: String, default: "" },
   },
   { timestamps: true },
+);
+
+// One order per captured payment. Auto-renewal charges are recorded from both
+// the buyer's confirm and the webhook; this makes the second one a no-op.
+orderSchema.index(
+  { providerPaymentId: 1 },
+  { unique: true, partialFilterExpression: { providerPaymentId: { $type: "string", $gt: "" } } },
 );
 
 export type OrderDoc = InferSchemaType<typeof orderSchema> & { _id: string };

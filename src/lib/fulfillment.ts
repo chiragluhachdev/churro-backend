@@ -28,7 +28,11 @@ export async function fulfillPaidOrder(order: OrderDoc): Promise<void> {
   }
 }
 
-/** Extends the member's pass from today, or from its current end if still running (early renewals aren't lost). */
+/**
+ * One-time pass: extends from today, or from the current end if still
+ * running (early renewals aren't lost). Auto-renewal charge: runs to the end
+ * of the period Razorpay billed, never cutting short time already held.
+ */
 async function grantPass(order: OrderDoc) {
   const member = await AiMember.findById(order.aiMember);
   if (!member) {
@@ -37,7 +41,9 @@ async function grantPass(order: OrderDoc) {
   }
   const now = new Date();
   const from = member.passExpiresAt && member.passExpiresAt > now ? member.passExpiresAt : now;
-  const passUntil = new Date(from.getTime() + (order.passDays ?? 365) * DAY_MS);
+  const passUntil = order.periodEnd
+    ? new Date(Math.max(order.periodEnd.getTime(), member.passExpiresAt?.getTime() ?? 0))
+    : new Date(from.getTime() + (order.passDays ?? 365) * DAY_MS);
 
   // Only one caller can stamp passUntil, so a pass is never granted twice for one payment.
   const claimed = await Order.findOneAndUpdate(
@@ -47,9 +53,7 @@ async function grantPass(order: OrderDoc) {
   );
   if (!claimed) return null;
 
-  await AiMember.updateOne(
-    { _id: member._id },
-    { $set: { passExpiresAt: passUntil, name: order.buyerName, email: order.buyerEmail } },
-  );
+  // Not the email: that's their sign-in identity, and the invoice may go elsewhere.
+  await AiMember.updateOne({ _id: member._id }, { $set: { passExpiresAt: passUntil, name: order.buyerName } });
   return claimed;
 }

@@ -6,10 +6,18 @@ import { z } from "zod";
 import { accessFor, getAiConfig, memberView, normalizeEmail } from "../lib/aiAccess.js";
 import { requireMember, signMemberToken } from "../lib/aiAuth.js";
 import { sendAiCodeEmail } from "../lib/aiCodeEmail.js";
+import { recordSubscriptionCharge } from "../lib/aiRenewals.js";
 import { fulfillPaidOrder } from "../lib/fulfillment.js";
 import { asyncHandler, HttpError } from "../lib/http.js";
 import { gstBreakdown, nextInvoiceNumber } from "../lib/invoice.js";
 import { activeProvider, createProviderOrder, verifyProviderPayment } from "../lib/payments.js";
+import {
+  cancelSubscription,
+  createSubscription,
+  fetchSubscription,
+  fromUnix,
+  verifySubscriptionPayment,
+} from "../lib/subscriptions.js";
 import { AiMember } from "../models/AiMember.js";
 import { AiOtp } from "../models/AiOtp.js";
 import { BillingSettings } from "../models/BillingSettings.js";
@@ -42,6 +50,7 @@ aiRouter.get(
         passDays: c.passDays,
         freeTries: c.freeTries,
         trialMinutes: c.trialMinutes,
+        autoRenewEnabled: c.autoRenewEnabled,
       },
     });
   }),
@@ -141,6 +150,31 @@ aiRouter.post(
     if (!member) throw new HttpError(401, "Please sign in again.");
     if (accessFor(member, config) === "locked") {
       throw new HttpError(402, "Your free try has been used. Get the pass to keep going.");
+    }
+    res.json({ member: memberView(member, config) });
+  }),
+);
+
+/**
+ * Spends the free try's one export (print/PDF or CSV). Pass holders export
+ * freely, so this just says yes to them. Atomic, so two quick clicks can't
+ * both get through.
+ */
+aiRouter.post(
+  "/trial/export",
+  requireMember,
+  asyncHandler(async (req, res) => {
+    const config = await getAiConfig();
+    const now = new Date();
+    const claimed = await AiMember.findOneAndUpdate(
+      { _id: req.memberId, trialEndsAt: { $gt: now }, trialExportUsed: { $ne: true } },
+      { $set: { trialExportUsed: true } },
+      { new: true },
+    ).lean();
+    const member = claimed ?? (await AiMember.findById(req.memberId).lean());
+    if (!member) throw new HttpError(401, "Please sign in again.");
+    if (!claimed && accessFor(member, config) !== "pass") {
+      throw new HttpError(402, "Your free try includes one export, and it's been used. Get the pass for unlimited exports.");
     }
     res.json({ member: memberView(member, config) });
   }),
@@ -260,5 +294,101 @@ aiRouter.post(
 
     const member = await AiMember.findById(req.memberId).lean();
     res.json({ member: memberView(member!, await getAiConfig()) });
+  }),
+);
+
+/* --------------------------------------------------------- auto-renewal -- */
+
+/** Razorpay's states in which the mandate is live and will charge again. */
+const RENEWING = new Set(["created", "authenticated", "active", "pending"]);
+
+/**
+ * Starts an auto-renewing pass: makes the Razorpay subscription the buyer
+ * then approves in Checkout (UPI Autopay or card). Nothing is granted here —
+ * that waits for a verified first charge.
+ */
+aiRouter.post(
+  "/subscriptions",
+  requireMember,
+  asyncHandler(async (req, res) => {
+    const parsed = buyerSchema.safeParse(req.body);
+    if (!parsed.success) throw new HttpError(400, parsed.error.issues[0]?.message ?? "Check your details and try again.");
+    const config = await getAiConfig();
+    if (!config.autoRenewEnabled) throw new HttpError(409, "Auto-renewal isn't offered right now. Please choose “Pay once”.");
+
+    const member = await AiMember.findById(req.memberId);
+    if (!member) throw new HttpError(401, "Please sign in again.");
+    if (member.autoRenew && member.subscriptionStatus && RENEWING.has(member.subscriptionStatus)) {
+      throw new HttpError(409, "Auto-renewal is already on for your account.");
+    }
+
+    const subscription = await createSubscription(config, String(member._id));
+    member.set({
+      name: parsed.data.name,
+      invoiceEmail: parsed.data.email,
+      subscriptionId: subscription.id,
+      subscriptionStatus: subscription.status,
+      autoRenew: false,
+    });
+    await member.save();
+
+    res.status(201).json({
+      subscription: {
+        id: subscription.id,
+        testMode: activeProvider() === "dummy",
+        razorpayKeyId: activeProvider() === "razorpay" ? process.env.RAZORPAY_KEY_ID || "" : "",
+        amount: config.passPrice,
+        passName: config.passName,
+        passDays: config.passDays,
+        buyer: { name: parsed.data.name, email: parsed.data.email },
+      },
+    });
+  }),
+);
+
+/** Checkout's success callback: verifies it, books the first charge and switches auto-renew on. */
+aiRouter.post(
+  "/subscriptions/confirm",
+  requireMember,
+  asyncHandler(async (req, res) => {
+    const member = await AiMember.findById(req.memberId);
+    if (!member?.subscriptionId) throw new HttpError(404, "No auto-renewal checkout in progress.");
+    const subscriptionId = member.subscriptionId;
+    const paymentId = verifySubscriptionPayment((req.body ?? {}) as Record<string, unknown>, subscriptionId);
+
+    const config = await getAiConfig();
+    const subscription = await fetchSubscription(subscriptionId).catch(() => null);
+    member.set({
+      autoRenew: true,
+      subscriptionStatus: subscription?.status && subscription.status !== "created" ? subscription.status : "active",
+    });
+    await member.save();
+
+    await recordSubscriptionCharge({
+      memberId: String(member._id),
+      subscriptionId,
+      paymentId,
+      amount: config.passPrice,
+      periodEnd: fromUnix(subscription?.current_end),
+      nextChargeAt: fromUnix(subscription?.charge_at),
+      status: member.subscriptionStatus ?? "active",
+    });
+
+    const fresh = await AiMember.findById(member._id).lean();
+    res.json({ member: memberView(fresh!, config) });
+  }),
+);
+
+/** Turns auto-renewal off. They keep the period they've already paid for. */
+aiRouter.post(
+  "/subscriptions/cancel",
+  requireMember,
+  asyncHandler(async (req, res) => {
+    const member = await AiMember.findById(req.memberId);
+    if (!member?.subscriptionId || !member.autoRenew) throw new HttpError(409, "Auto-renewal isn't on.");
+    await cancelSubscription(member.subscriptionId, true);
+    member.set({ autoRenew: false, nextChargeAt: undefined });
+    await member.save();
+    res.json({ member: memberView(member.toObject(), await getAiConfig()) });
   }),
 );

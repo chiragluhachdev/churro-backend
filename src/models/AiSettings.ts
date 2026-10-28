@@ -22,6 +22,12 @@ const aiSettingsSchema = new Schema(
     freeTries: { type: Number, default: 1, min: 0 },
     /** How long one free try stays open once started. */
     trialMinutes: { type: Number, default: 60, min: 1 },
+    /** Offer "renews automatically" at checkout (Razorpay Subscriptions), alongside paying once. */
+    autoRenewEnabled: { type: Boolean, default: true },
+    /** Razorpay plans can't be edited, so one is made per price + length; this is the current one. */
+    razorpayPlanId: { type: String, default: "" },
+    /** `${price}:${days}` the plan above was made for — a change means a new plan. */
+    razorpayPlanKey: { type: String, default: "" },
   },
   { timestamps: true },
 );
