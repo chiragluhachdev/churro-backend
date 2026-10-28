@@ -7,7 +7,6 @@ export interface AiConfig {
   passDays: number;
   freeTries: number;
   trialMinutes: number;
-  demoOtp: string;
 }
 
 const DEFAULTS: AiConfig = {
@@ -17,7 +16,6 @@ const DEFAULTS: AiConfig = {
   passDays: 365,
   freeTries: 1,
   trialMinutes: 60,
-  demoOtp: "123456",
 };
 
 export async function getAiConfig(): Promise<AiConfig> {
@@ -29,23 +27,20 @@ export async function getAiConfig(): Promise<AiConfig> {
     passDays: doc?.passDays ?? DEFAULTS.passDays,
     freeTries: doc?.freeTries ?? DEFAULTS.freeTries,
     trialMinutes: doc?.trialMinutes ?? DEFAULTS.trialMinutes,
-    demoOtp: doc?.demoOtp || DEFAULTS.demoOtp,
   };
 }
 
-/** "+91 98765-43210", "098765 43210", "9876543210" → "9876543210", or null if it isn't an Indian mobile. */
-export function normalizePhone(raw: string): string | null {
-  let digits = raw.replace(/\D/g, "");
-  if (digits.length === 12 && digits.startsWith("91")) digits = digits.slice(2);
-  if (digits.length === 11 && digits.startsWith("0")) digits = digits.slice(1);
-  return /^[6-9]\d{9}$/.test(digits) ? digits : null;
+/** " Asha@Example.com " → "asha@example.com", or null if it isn't an email address. */
+export function normalizeEmail(raw: string): string | null {
+  const email = raw.trim().toLowerCase();
+  return email.length <= 254 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ? email : null;
 }
 
 export type AiAccess = "pass" | "trial" | "trial_available" | "locked";
 
 interface MemberLike {
   _id: unknown;
-  phone: string;
+  phone?: string | null;
   name?: string | null;
   email?: string | null;
   freeTriesUsed?: number | null;
@@ -68,7 +63,7 @@ const iso = (d?: Date | null) => (d ? new Date(d).toISOString() : undefined);
 export function memberView(member: MemberLike, config: AiConfig) {
   return {
     id: String(member._id),
-    phone: member.phone,
+    phone: member.phone ?? "",
     name: member.name ?? "",
     email: member.email ?? "",
     access: accessFor(member, config),

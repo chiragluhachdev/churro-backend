@@ -19,9 +19,12 @@ declare global {
   }
 }
 
+/** Matches the frontend: an admin sign-in lasts 10 minutes from login, then must be repeated. */
+const ADMIN_TOKEN_TTL = "10m";
+
 export function signToken(payload: AuthPayload): string {
   return jwt.sign(payload, env.jwtSecret, {
-    expiresIn: env.jwtExpiresIn,
+    expiresIn: ADMIN_TOKEN_TTL,
   } as jwt.SignOptions);
 }
 

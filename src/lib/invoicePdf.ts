@@ -80,7 +80,7 @@ export function generateInvoicePdf(data: InvoicePdfData): Promise<Buffer> {
     doc.font("Helvetica-Bold").fontSize(11).fillColor(COLORS.ink).text(data.buyer.name, left, doc.y + 3);
     doc.font("Helvetica").fontSize(9).fillColor(COLORS.muted);
     doc.text(data.buyer.email, left, doc.y + 2);
-    doc.text(data.buyer.phone, left, doc.y + 2);
+    if (data.buyer.phone) doc.text(data.buyer.phone, left, doc.y + 2);
 
     doc.moveDown(1.5);
     const tableTop = doc.y + 10;

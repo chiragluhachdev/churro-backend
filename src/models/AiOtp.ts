@@ -5,10 +5,10 @@ import type { InferSchemaType, Model } from "mongoose";
 
 const { Schema, model, models } = mongoose;
 
-/** One outstanding sign-in code per phone. Only a hash is stored; Mongo drops it once expired. */
+/** One outstanding sign-in code per email address. Only a hash is stored; Mongo drops it once expired. */
 const aiOtpSchema = new Schema(
   {
-    phone: { type: String, required: true, unique: true },
+    email: { type: String, required: true, unique: true },
     codeHash: { type: String, required: true },
     expiresAt: { type: Date, required: true, expires: 0 },
     attempts: { type: Number, default: 0 },

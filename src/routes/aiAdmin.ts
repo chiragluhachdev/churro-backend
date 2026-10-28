@@ -3,7 +3,10 @@ import mongoose from "mongoose";
 import { z } from "zod";
 
 import { getAiConfig, memberView } from "../lib/aiAccess.js";
+import type { AiAccess, AiConfig } from "../lib/aiAccess.js";
+import { activeEmailProvider } from "../lib/brevo.js";
 import { asyncHandler, HttpError } from "../lib/http.js";
+import { activeProvider } from "../lib/payments.js";
 import { authenticate, requireAdmin } from "../middleware/auth.js";
 import { AiMember } from "../models/AiMember.js";
 import { AiSettings } from "../models/AiSettings.js";
@@ -28,7 +31,6 @@ const settingsSchema = z.object({
   passDays: z.coerce.number().int().min(1, "The pass must last at least a day.").max(3650),
   freeTries: z.coerce.number().int().min(0).max(10, "Ten free tries at most."),
   trialMinutes: z.coerce.number().int().min(1, "A free try must last at least a minute.").max(1440, "A free try can last 24 hours at most."),
-  demoOtp: z.string().trim().regex(/^\d{4,8}$/, "The demo code must be 4–8 digits."),
 });
 
 aiAdminRouter.put(
@@ -41,17 +43,37 @@ aiAdminRouter.put(
   }),
 );
 
-/** Every member, newest first, plus the numbers the admin page leads with. */
+/** Mongo conditions matching `accessFor` — keep the two in step. */
+function accessFilter(access: AiAccess, config: AiConfig, now: Date): Record<string, unknown> {
+  const noPass = { passExpiresAt: { $not: { $gt: now } } };
+  const noTrial = { trialEndsAt: { $not: { $gt: now } } };
+  switch (access) {
+    case "pass":
+      return { passExpiresAt: { $gt: now } };
+    case "trial":
+      return { trialEndsAt: { $gt: now }, ...noPass };
+    case "trial_available":
+      return { ...noPass, ...noTrial, freeTriesUsed: { $lt: config.freeTries } };
+    case "locked":
+      return { ...noPass, ...noTrial, freeTriesUsed: { $gte: config.freeTries } };
+  }
+}
+
+const ACCESS_VALUES: AiAccess[] = ["pass", "trial", "trial_available", "locked"];
+
+/** Every member, newest first, plus the numbers the admin page leads with. `status` narrows to one access state. */
 aiAdminRouter.get(
   "/members",
   asyncHandler(async (req, res) => {
     const q = String(req.query.q ?? "").trim();
+    const status = String(req.query.status ?? "") as AiAccess;
+    const now = new Date();
     const filter: Record<string, unknown> = {};
+    if (ACCESS_VALUES.includes(status)) Object.assign(filter, accessFilter(status, await getAiConfig(), now));
     if (q) {
       const rx = new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i");
       filter.$or = [{ phone: rx }, { name: rx }, { email: rx }];
     }
-    const now = new Date();
     const [config, docs, total, activePasses, onTrial, revenue] = await Promise.all([
       getAiConfig(),
       AiMember.find(filter).sort({ createdAt: -1 }).limit(500).lean(),
@@ -66,6 +88,78 @@ aiAdminRouter.get(
     res.json({
       summary: { members: total, activePasses, onTrial, revenue: revenue[0]?.total ?? 0 },
       members: docs.map((d) => memberView(d, config)),
+    });
+  }),
+);
+
+/**
+ * The dashboard's headline view: how the funnel is doing, the latest pass
+ * sales, passes about to run out, and whether email and payments are
+ * actually live.
+ */
+aiAdminRouter.get(
+  "/overview",
+  asyncHandler(async (_req, res) => {
+    const config = await getAiConfig();
+    const now = new Date();
+    const weekAgo = new Date(now.getTime() - 7 * DAY_MS);
+    const monthStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
+    const twoWeeksOut = new Date(now.getTime() + 14 * DAY_MS);
+    const paid = { kind: "ai_pass" as const, status: "paid" as const };
+
+    const [
+      members,
+      newThisWeek,
+      triedFree,
+      activePasses,
+      onTrial,
+      buyers,
+      revenue,
+      revenueThisMonth,
+      recentSales,
+      expiring,
+    ] = await Promise.all([
+      AiMember.countDocuments({}),
+      AiMember.countDocuments({ createdAt: { $gte: weekAgo } }),
+      AiMember.countDocuments({ freeTriesUsed: { $gt: 0 } }),
+      AiMember.countDocuments({ passExpiresAt: { $gt: now } }),
+      AiMember.countDocuments(accessFilter("trial", config, now)),
+      Order.distinct("aiMember", paid),
+      Order.aggregate<{ total: number; count: number }>([
+        { $match: paid },
+        { $group: { _id: null, total: { $sum: "$amount" }, count: { $sum: 1 } } },
+      ]),
+      Order.aggregate<{ total: number }>([
+        { $match: { ...paid, paidAt: { $gte: monthStart } } },
+        { $group: { _id: null, total: { $sum: "$amount" } } },
+      ]),
+      Order.find(paid).sort({ paidAt: -1 }).limit(6).lean(),
+      AiMember.find({ passExpiresAt: { $gt: now, $lte: twoWeeksOut } }).sort({ passExpiresAt: 1 }).limit(6).lean(),
+    ]);
+
+    res.json({
+      overview: {
+        calculatorEnabled: config.calculatorEnabled,
+        members,
+        newThisWeek,
+        triedFree,
+        buyers: buyers.length,
+        activePasses,
+        onTrial,
+        passesSold: revenue[0]?.count ?? 0,
+        revenue: revenue[0]?.total ?? 0,
+        revenueThisMonth: revenueThisMonth[0]?.total ?? 0,
+        recentSales: recentSales.map((o) => ({
+          id: String(o._id),
+          name: o.buyerName,
+          email: o.buyerEmail,
+          amount: o.amount,
+          paidAt: o.paidAt ? new Date(o.paidAt).toISOString() : undefined,
+          invoiceNumber: o.invoiceNumber ?? "",
+        })),
+        expiring: expiring.map((m) => memberView(m, config)),
+        providers: { email: activeEmailProvider(), payments: activeProvider() },
+      },
     });
   }),
 );

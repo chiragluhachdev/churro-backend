@@ -22,8 +22,6 @@ const aiSettingsSchema = new Schema(
     freeTries: { type: Number, default: 1, min: 0 },
     /** How long one free try stays open once started. */
     trialMinutes: { type: Number, default: 60, min: 1 },
-    /** No SMS provider is wired up yet: every number signs in with this code. */
-    demoOtp: { type: String, default: "123456" },
   },
   { timestamps: true },
 );

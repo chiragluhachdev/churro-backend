@@ -18,8 +18,15 @@ const orderSchema = new Schema(
   {
     buyerName: { type: String, required: true, trim: true },
     buyerEmail: { type: String, required: true, trim: true, lowercase: true, index: true },
-    /** WhatsApp number the chef sends the course materials to. */
-    buyerPhone: { type: String, required: true, trim: true },
+    /** WhatsApp number the chef sends the course materials to. Churro AI members sign in by email, so may have none. */
+    buyerPhone: {
+      type: String,
+      trim: true,
+      default: "",
+      required: function (this: { kind?: string }) {
+        return this.kind !== "ai_pass";
+      },
+    },
     /** A course purchase, or a Churro AI pass (no course, tied to a member instead). */
     kind: { type: String, enum: ["course", "ai_pass"], default: "course", index: true },
     course: {

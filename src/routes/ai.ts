@@ -3,8 +3,9 @@ import { Router } from "express";
 import mongoose from "mongoose";
 import { z } from "zod";
 
-import { accessFor, getAiConfig, memberView, normalizePhone } from "../lib/aiAccess.js";
+import { accessFor, getAiConfig, memberView, normalizeEmail } from "../lib/aiAccess.js";
 import { requireMember, signMemberToken } from "../lib/aiAuth.js";
+import { sendAiCodeEmail } from "../lib/aiCodeEmail.js";
 import { fulfillPaidOrder } from "../lib/fulfillment.js";
 import { asyncHandler, HttpError } from "../lib/http.js";
 import { gstBreakdown, nextInvoiceNumber } from "../lib/invoice.js";
@@ -14,15 +15,16 @@ import { AiOtp } from "../models/AiOtp.js";
 import { BillingSettings } from "../models/BillingSettings.js";
 import { Order } from "../models/Order.js";
 
-/** Churro AI's own API: phone sign-in, the free try, and buying the pass. */
+/** Churro AI's own API: email sign-in, the free try, and buying the pass. */
 export const aiRouter = Router();
 
-const OTP_TTL_MS = 5 * 60 * 1000;
+const OTP_TTL_MIN = 10;
+const OTP_TTL_MS = OTP_TTL_MIN * 60 * 1000;
 const OTP_RESEND_MS = 30 * 1000;
 const OTP_MAX_ATTEMPTS = 5;
 const ORDER_TTL_MS = 30 * 60 * 1000;
 
-const hashCode = (phone: string, code: string) => crypto.createHash("sha256").update(`${phone}:${code}`).digest("hex");
+const hashCode = (email: string, code: string) => crypto.createHash("sha256").update(`${email}:${code}`).digest("hex");
 
 export const passLabel = (days: number) =>
   days % 365 === 0 ? `${days / 365} year${days === 365 ? "" : "s"}` : `${days} days`;
@@ -40,9 +42,6 @@ aiRouter.get(
         passDays: c.passDays,
         freeTries: c.freeTries,
         trialMinutes: c.trialMinutes,
-        // Shown on the sign-in screen on purpose: there's no SMS provider yet,
-        // so this demo code is the only way anyone can sign in.
-        demoOtp: c.demoOtp,
       },
     });
   }),
@@ -53,39 +52,43 @@ aiRouter.get(
 aiRouter.post(
   "/auth/request-otp",
   asyncHandler(async (req, res) => {
-    const phone = normalizePhone(String(req.body?.phone ?? ""));
-    if (!phone) throw new HttpError(400, "Enter a valid 10-digit mobile number.");
+    const email = normalizeEmail(String(req.body?.email ?? ""));
+    if (!email) throw new HttpError(400, "Enter a valid email address.");
 
-    const existing = await AiOtp.findOne({ phone }).lean();
+    const existing = await AiOtp.findOne({ email }).lean();
     if (existing && Date.now() - new Date(existing.updatedAt).getTime() < OTP_RESEND_MS) {
       throw new HttpError(429, "Please wait a few seconds before asking for another code.");
     }
 
-    // No SMS provider yet, so the code is the admin's demo code. When one is
-    // connected, generate a random code here and send it instead.
-    const { demoOtp: code } = await getAiConfig();
+    const code = String(crypto.randomInt(0, 1_000_000)).padStart(6, "0");
     await AiOtp.findOneAndUpdate(
-      { phone },
-      { $set: { codeHash: hashCode(phone, code), expiresAt: new Date(Date.now() + OTP_TTL_MS), attempts: 0 } },
+      { email },
+      { $set: { codeHash: hashCode(email, code), expiresAt: new Date(Date.now() + OTP_TTL_MS), attempts: 0 } },
       { upsert: true },
     );
-    res.json({ ok: true, phone });
+    const sent = await sendAiCodeEmail(email, code, OTP_TTL_MIN);
+    if (!sent.ok) {
+      // Drop the code so the resend wait doesn't block them from trying again.
+      await AiOtp.deleteOne({ email });
+      throw new HttpError(502, "We couldn't send the code. Check the address and try again.");
+    }
+    res.json({ ok: true, email });
   }),
 );
 
 aiRouter.post(
   "/auth/verify-otp",
   asyncHandler(async (req, res) => {
-    const phone = normalizePhone(String(req.body?.phone ?? ""));
+    const email = normalizeEmail(String(req.body?.email ?? ""));
     const code = String(req.body?.code ?? "").trim();
-    if (!phone || !/^\d{4,8}$/.test(code)) throw new HttpError(400, "Enter the code we sent you.");
+    if (!email || !/^\d{6}$/.test(code)) throw new HttpError(400, "Enter the 6-digit code we emailed you.");
 
-    const otp = await AiOtp.findOne({ phone });
+    const otp = await AiOtp.findOne({ email });
     if (!otp || otp.expiresAt.getTime() < Date.now()) throw new HttpError(400, "That code has expired. Ask for a new one.");
     if (otp.attempts >= OTP_MAX_ATTEMPTS) throw new HttpError(429, "Too many wrong tries. Ask for a new code.");
 
     const expected = Buffer.from(otp.codeHash);
-    const given = Buffer.from(hashCode(phone, code));
+    const given = Buffer.from(hashCode(email, code));
     if (expected.length !== given.length || !crypto.timingSafeEqual(expected, given)) {
       await AiOtp.updateOne({ _id: otp._id }, { $inc: { attempts: 1 } });
       throw new HttpError(400, "That code isn't right. Check it and try again.");
@@ -93,7 +96,7 @@ aiRouter.post(
     await AiOtp.deleteOne({ _id: otp._id });
 
     const member = await AiMember.findOneAndUpdate(
-      { phone },
+      { email },
       { $set: { lastLoginAt: new Date() } },
       { upsert: true, new: true },
     ).lean();
@@ -201,7 +204,7 @@ aiRouter.post(
         aiMember: member._id,
         buyerName: name,
         buyerEmail: email,
-        buyerPhone: member.phone,
+        buyerPhone: member.phone ?? "",
         courseTitle: `${config.passName} (${passLabel(config.passDays)})`,
         amount,
         listPrice: amount,
@@ -214,8 +217,8 @@ aiRouter.post(
       await order.save();
     }
 
+    // Only the name: the invoice email can differ, but the sign-in email never changes here.
     member.name = name;
-    member.email = email;
     await member.save();
     res.status(201).json({ order: await passOrderView(order) });
   }),

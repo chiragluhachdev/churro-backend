@@ -20,7 +20,7 @@ export async function sendAiPassEmail(input: AiPassEmailInput): Promise<{ ok: tr
   const { name, passName, passUntil, invoiceNumber, seller } = input;
   const firstName = name.trim().split(/\s+/)[0] || "there";
   const until = new Intl.DateTimeFormat("en-IN", { timeZone: "Asia/Kolkata", day: "numeric", month: "long", year: "numeric" }).format(passUntil);
-  const appLink = `${env.appUrl.replace(/\/$/, "")}/churroai/calculator`;
+  const appLink = `${env.appUrl.replace(/\/$/, "")}/calculator`;
   const contact = [seller.email, seller.phone].filter(Boolean).join(" · ") || "us";
   const subject = `Your ${passName} is active`;
 
@@ -41,7 +41,7 @@ export async function sendAiPassEmail(input: AiPassEmailInput): Promise<{ ok: tr
         <tr><td style="background:#FFFFFF;padding:24px 28px;">
           <p style="margin:0 0 14px;color:#1B2A20;font-size:15px;line-height:1.6;">Hi ${escapeHtml(firstName)},</p>
           <p style="margin:0 0 18px;color:#1B2A20;font-size:15px;line-height:1.6;">
-            Thanks for joining Churro AI. Your pass is active until <strong>${escapeHtml(until)}</strong> — sign in with your phone number any time to use your tools.
+            Thanks for joining Churro AI. Your pass is active until <strong>${escapeHtml(until)}</strong>. Sign in with this email address any time to use your tools.
           </p>
           <p style="margin:0 0 18px;">
             <a href="${escapeHtml(appLink)}" style="display:inline-block;background:#294B32;color:#F9F6F2;font-size:14px;font-weight:600;text-decoration:none;padding:10px 20px;border-radius:999px;">Open Recipe Calculator &rarr;</a>
@@ -61,7 +61,7 @@ export async function sendAiPassEmail(input: AiPassEmailInput): Promise<{ ok: tr
 
   const text = `Hi ${firstName},
 
-Thanks for joining Churro AI. Your ${passName} is active until ${until}. Sign in with your phone number any time to use your tools:
+Thanks for joining Churro AI. Your ${passName} is active until ${until}. Sign in with this email address any time to use your tools:
 ${appLink}
 
 Your tax invoice${invoiceNumber ? ` (${invoiceNumber})` : ""} is attached to this email as a PDF.
