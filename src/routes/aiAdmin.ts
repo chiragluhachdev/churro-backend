@@ -40,7 +40,17 @@ aiAdminRouter.put(
   asyncHandler(async (req, res) => {
     const parsed = settingsSchema.safeParse(req.body);
     if (!parsed.success) throw new HttpError(400, parsed.error.issues[0]?.message ?? "Check the settings and try again.");
+    const before = await getAiConfig();
     await AiSettings.findOneAndUpdate({ key: "ai" }, { ...parsed.data, key: "ai" }, { upsert: true });
+
+    // A new free-try length applies to tries already running too: each keeps
+    // its start time and gets the new length (so shortening can end one now).
+    const deltaMs = (parsed.data.trialMinutes - before.trialMinutes) * 60_000;
+    if (deltaMs !== 0) {
+      await AiMember.updateMany({ trialEndsAt: { $gt: new Date() } }, [
+        { $set: { trialEndsAt: { $add: ["$trialEndsAt", deltaMs] } } },
+      ], { updatePipeline: true });
+    }
     res.json({ settings: await getAiConfig() });
   }),
 );
@@ -223,7 +233,7 @@ aiAdminRouter.post(
   "/members/:id/reset-trial",
   asyncHandler(async (req, res) => {
     const member = await loadMember(String(req.params.id));
-    member.set({ freeTriesUsed: 0, trialEndsAt: undefined, trialExportUsed: false });
+    member.set({ freeTriesUsed: 0, trialEndsAt: undefined, trialCalcUsed: false, trialExportUsed: false });
     await member.save();
     res.json({ member: memberView(member.toObject(), await getAiConfig()) });
   }),

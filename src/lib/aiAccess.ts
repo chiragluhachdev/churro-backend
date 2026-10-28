@@ -48,6 +48,7 @@ interface MemberLike {
   email?: string | null;
   freeTriesUsed?: number | null;
   trialEndsAt?: Date | null;
+  trialCalcUsed?: boolean | null;
   trialExportUsed?: boolean | null;
   passExpiresAt?: Date | null;
   subscriptionStatus?: string | null;
@@ -77,6 +78,7 @@ export function memberView(member: MemberLike, config: AiConfig) {
     freeTriesUsed: member.freeTriesUsed ?? 0,
     freeTriesLeft: Math.max(0, config.freeTries - (member.freeTriesUsed ?? 0)),
     trialEndsAt: iso(member.trialEndsAt),
+    trialCalcUsed: Boolean(member.trialCalcUsed),
     trialExportUsed: Boolean(member.trialExportUsed),
     passExpiresAt: iso(member.passExpiresAt),
     autoRenew: Boolean(member.autoRenew),

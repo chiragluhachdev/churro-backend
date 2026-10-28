@@ -156,29 +156,40 @@ aiRouter.post(
 );
 
 /**
- * Spends the free try's one export (print/PDF or CSV). Pass holders export
- * freely, so this just says yes to them. Atomic, so two quick clicks can't
- * both get through.
+ * A free try includes one calculation and one export (print/PDF or CSV).
+ * These spend them. Pass holders have no limits, so they just get a yes.
+ * Atomic, so two quick clicks can't both get through.
  */
-aiRouter.post(
-  "/trial/export",
-  requireMember,
-  asyncHandler(async (req, res) => {
-    const config = await getAiConfig();
-    const now = new Date();
-    const claimed = await AiMember.findOneAndUpdate(
-      { _id: req.memberId, trialEndsAt: { $gt: now }, trialExportUsed: { $ne: true } },
-      { $set: { trialExportUsed: true } },
-      { new: true },
-    ).lean();
-    const member = claimed ?? (await AiMember.findById(req.memberId).lean());
-    if (!member) throw new HttpError(401, "Please sign in again.");
-    if (!claimed && accessFor(member, config) !== "pass") {
-      throw new HttpError(402, "Your free try includes one export, and it's been used. Get the pass for unlimited exports.");
-    }
-    res.json({ member: memberView(member, config) });
-  }),
-);
+const TRIAL_LIMITS = {
+  calculate: {
+    field: "trialCalcUsed",
+    used: "Your free try includes one calculation, and it's been used. Get the pass to calculate as often as you like.",
+  },
+  export: {
+    field: "trialExportUsed",
+    used: "Your free try includes one export, and it's been used. Get the pass for unlimited exports.",
+  },
+} as const;
+
+for (const [action, limit] of Object.entries(TRIAL_LIMITS)) {
+  aiRouter.post(
+    `/trial/${action}`,
+    requireMember,
+    asyncHandler(async (req, res) => {
+      const config = await getAiConfig();
+      const now = new Date();
+      const claimed = await AiMember.findOneAndUpdate(
+        { _id: req.memberId, trialEndsAt: { $gt: now }, [limit.field]: { $ne: true } },
+        { $set: { [limit.field]: true } },
+        { new: true },
+      ).lean();
+      const member = claimed ?? (await AiMember.findById(req.memberId).lean());
+      if (!member) throw new HttpError(401, "Please sign in again.");
+      if (!claimed && accessFor(member, config) !== "pass") throw new HttpError(402, limit.used);
+      res.json({ member: memberView(member, config) });
+    }),
+  );
+}
 
 /* ----------------------------------------------------------- the pass -- */
 

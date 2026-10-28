@@ -23,7 +23,8 @@ const aiMemberSchema = new Schema(
     freeTriesUsed: { type: Number, default: 0 },
     /** End of the free try currently running, if any. */
     trialEndsAt: { type: Date },
-    /** A free try includes one print/PDF or CSV export; this marks it spent. */
+    /** A free try includes one calculation and one print/PDF or CSV export; these mark them spent. */
+    trialCalcUsed: { type: Boolean, default: false },
     trialExportUsed: { type: Boolean, default: false },
     /** Paid access lasts until this moment. */
     passExpiresAt: { type: Date },
