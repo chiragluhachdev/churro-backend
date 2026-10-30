@@ -92,11 +92,13 @@ async function currentPlanId(config: { passName: string; passPrice: number; pass
 export async function createSubscription(
   config: { passName: string; passPrice: number; passDays: number },
   memberId: string,
+  isInternational: boolean = false,
 ): Promise<RazorpaySubscription> {
+  const effectiveConfig = isInternational ? { ...config, passPrice: config.passPrice * 2 } : config;
   if (activeProvider() !== "razorpay") {
     return { id: `dummy_sub_${memberId}_${Date.now()}`, plan_id: "dummy_plan", status: "created" };
   }
-  const planId = await currentPlanId(config);
+  const planId = await currentPlanId(effectiveConfig);
   return razorpay<RazorpaySubscription>("/subscriptions", {
     method: "POST",
     body: {

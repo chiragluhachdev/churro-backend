@@ -196,6 +196,7 @@ for (const [action, limit] of Object.entries(TRIAL_LIMITS)) {
 const buyerSchema = z.object({
   name: z.string().trim().min(2, "Enter your name."),
   email: z.string().trim().toLowerCase().email("Enter a valid email address."),
+  isInternational: z.boolean().optional(),
 });
 
 async function passOrderView(order: InstanceType<typeof Order>) {
@@ -229,7 +230,8 @@ aiRouter.post(
     const member = await AiMember.findById(req.memberId);
     if (!member) throw new HttpError(401, "Please sign in again.");
     const config = await getAiConfig();
-    const amount = config.passPrice;
+    const isInternational = Boolean(parsed.data.isInternational);
+    const amount = isInternational ? config.passPrice * 2 : config.passPrice;
 
     // Reuse a still-open order at the same price instead of piling up new ones.
     let order = await Order.findOne({
@@ -333,7 +335,8 @@ aiRouter.post(
       throw new HttpError(409, "Auto-renewal is already on for your account.");
     }
 
-    const subscription = await createSubscription(config, String(member._id));
+    const isInternational = Boolean(parsed.data.isInternational);
+    const subscription = await createSubscription(config, String(member._id), isInternational);
     member.set({
       name: parsed.data.name,
       invoiceEmail: parsed.data.email,
